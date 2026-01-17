@@ -96,8 +96,9 @@ public class RobotMap {
   public static int D_BACK_RIGHT_TURNING = RoboRioMap.CAN_0;
   public static int D_BACK_LEFT_TURNING = RoboRioMap.CAN_0;
 
-  // [I]ntake 
+  // [I]ntake TODO: fill in intake mappings
   public static boolean I_ENABLED = true;
+  public static int I_MOTOR_CAN_ID = RoboRioMap.CAN_0;
 
   // [S]hooter
   public static boolean S_ENABLED = true;
