@@ -16,6 +16,7 @@ import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.RobotController;
 
 import com.revrobotics.spark.SparkClosedLoopController;
+import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.FeedbackSensor;
 import com.revrobotics.spark.SparkBase;
 import com.revrobotics.spark.config.SparkBaseConfig;
@@ -186,6 +187,12 @@ public class MAXSwerveModule {
   }
 
   // sysid helpers
+  public void goSysid(Voltage in) {
+    m_drivingSpark.set(in.magnitude()/RobotController.getBatteryVoltage());
+    m_turningPIDController.setSetpoint(new Rotation2d().plus(Rotation2d.fromRadians(m_chassisAngularOffset)).getRadians(),
+                                       ControlType.kPosition);
+  }
+
   public Voltage getDriveVoltage() {
     return m_appliedVoltage.mut_replace(m_drivingSpark.get() * RobotController.getBatteryVoltage(), Volts);
   }

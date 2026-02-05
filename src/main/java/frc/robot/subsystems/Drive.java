@@ -85,7 +85,7 @@ public class Drive extends SubsystemBase {
   private ChassisSpeeds m_lastSpeeds = new ChassisSpeeds();
 
   private final Config cfg = new Config();
-  private final Consumer<Voltage> out = (volts)->{drive(volts.magnitude(), 0, 0, false, false);};
+  private final Consumer<Voltage> out = (volts)->{driveSysid(volts);};
   private final Consumer<SysIdRoutineLog> log = entry->{
     entry.motor("FRD").voltage(m_FrontRight.getDriveVoltage())
                       .linearPosition(m_FrontRight.getDrivePosition())
@@ -338,6 +338,13 @@ public class Drive extends SubsystemBase {
       m_BackRight.getPosition()
     }, 
     pose);
+  }
+ 
+  void driveSysid(Voltage in) {
+    m_BackLeft.goSysid(in);
+    m_BackRight.goSysid(in);
+    m_FrontLeft.goSysid(in);
+    m_FrontRight.goSysid(in);
   }
 
   /*

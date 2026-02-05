@@ -51,8 +51,8 @@
        "backLeftDrive" :     {"cType":"SparkMax", "mType":"kBrushless", "canid":6}
    },
    "Drive" : [
-       {"varName" : "kDrivingP", "value" : 0.0},
-       {"varName" : "kTurningP", "value" : 0.0}
+       {"varName" : "kDrivingP", "value" : 0.02},
+       {"varName" : "kTurningP", "value" : 1.0}
     ],
    "Intake" : [
        {"varName" : "intakeEnabled", "value" : false},

@@ -38,7 +38,7 @@ public final class Constants {
         public static final double kDrivingMotorFreeSpeedRPS = kVortexFreeSpeedRPM / 60;
         public static final double kDriveWheelFreeSpeedRPS = (kDrivingMotorFreeSpeedRPS * kWheelCircumferenceMeters) / kDrivingMotorReduction;
         static double nominalVoltage = 12.0;
-        public static final double kDrivingVelocityFF = nominalVoltage / kDriveWheelFreeSpeedRPS;
+        public static final double kDrivingVelocityFF = 1.0 / kDriveWheelFreeSpeedRPS;
 
 
         public static final double kDrivingP = Configuration.getInstance().getDouble("Drive", "kDrivingP");
