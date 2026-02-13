@@ -67,6 +67,10 @@
         {"varName" : "turretHardLimit", "value" : 9.942478},
         {"varName" : "turretSoftLimit", "value" : 9.942478},
 
+        {"varName" : "turretPositionX", "value" : 0},
+        {"varName" : "turretPositionY", "value" : 0},
+        {"varName" : "turretPositionZ", "value" : 0},
+
         {"varName" : "hoodAngleMotorCANid", "value" : 13},
         {"varName" : "chimneyMotorCANid", "value" : 14}
     ],
@@ -128,6 +132,10 @@
         {"varName" : "turretDeadzoneStart", "value": 6.28319},
         {"varName" : "turretHardLimit", "value" : 9.942478},
         {"varName" : "turretSoftLimit", "value" : 9.942478},
+
+        {"varName" : "turretPositionX", "value" : 0},
+        {"varName" : "turretPositionY", "value" : 0},
+        {"varName" : "turretPositionZ", "value" : 0},
 
         {"varName" : "hoodAngleMotorCANid", "value" : 13},
         {"varName" : "chimneyMotorCANid", "value" : 14}

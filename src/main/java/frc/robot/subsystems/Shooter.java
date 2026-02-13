@@ -9,6 +9,7 @@ import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.config.SparkFlexConfig;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -154,20 +155,38 @@ public class Shooter extends SubsystemBase{
         m_Drive = Drive.getInstance();
     }
 
-    /*
-     * Sets a target velocity for the flywheel in rpm.
+    /**
+     * Sets a target velocity for the flywheel.
+     * @param rpm Velocity to approach in RPM.
      */
-    public void setFlywheelTargetVelocity(double velocity) {
-        m_TDflywheelVelocity.set(velocity);
+    public void setFlywheelTarget(double rpm) {
+        m_TDflywheelVelocity.set(rpm);
     }
 
-    /*
-     * Sets the target angle of the turret in field orientation,
-     * along with a speed for it to change it in radians per second.
+    /**
+     * Sets a target position for the hood.
+     * @param angle Position to approach in radians.
+     */
+    public void setHoodTarget(double angle) {
+        // TODO: implement hood target
+    }
+
+    /**
+     * Sets the target values of the turret.
+     * @param targetAngle Target angle to approach in radians.
+     * @param speed Speed to move target angle by in radians/second.
      */
     public void setTurretTarget(double targetAngle, double speed) {
         m_TDturretTargetAngle.set(targetAngle);
         m_TDturretSpeed.set(speed);
+    }
+
+    public void chimneySpeed(double speed) {
+        // TODO: implement chimneySpeed
+    }
+
+    public void chimneyStop() {
+        // TODO: implement chimneyStop
     }
 
     public double getTurretTarget() {
@@ -176,6 +195,37 @@ public class Shooter extends SubsystemBase{
 
     public double getTurretSpeed() {
         return m_TDturretSpeed.get();
+    }
+
+    public boolean turretAtTarget() {
+        return MathUtil.isNear(m_TDturretTargetAngle.get(), m_turretMotor.getEncoder().getPosition(), cfgDbl("turretTolerance"));
+    }
+    public boolean flywheelAtTarget() {
+        return MathUtil.isNear(m_TDflywheelVelocity.get(), m_turretMotor.getEncoder().getVelocity(), cfgDbl("flywheelTolerance"));
+    }
+    public boolean hoodAtTarget() {
+        // TODO: implement hoodAtTarget
+        return false;
+    }
+
+    /**
+     * Gets a hood angle needed to throw the ball at a given pitch
+     * @param angle Input pitch in radians (0 = +X, pi/2 = +Z)
+     * @return Valid hood angle in radians
+     */
+    public double pitchToHood(double angle) {
+        // TODO: implement pitch to hood angle conversion
+        return 0;
+    }
+
+    /**
+     * Convert a field velocity to a flywheel velocity for the flywheel
+     * @param velocity Field velocity in m/s
+     * @return Flywheel velocity in RPM
+     */
+    public double velocityToRPM(double velocity) {
+        // TODO: implement velocity to RPM conversion
+        return 0;
     }
 
     // see angleToTarget for more info
