@@ -31,7 +31,7 @@ public final class Constants {
         public static final double kWheelDiameterMeters = 0.0762;
         public static final double kWheelCircumferenceMeters = kWheelDiameterMeters * Math.PI;
 
-        public static final int kDrivingMotorPinionTeeth = 12;
+        public static final int kDrivingMotorPinionTeeth = 13;
         public static final double kDrivingMotorReduction = (45.0*22)/(kDrivingMotorPinionTeeth*15);
 
         public static final double kVortexFreeSpeedRPM = 6784;
@@ -100,9 +100,9 @@ public final class Constants {
 
     public static final class AutoConstants {
         public static final double kMaxSpeedMetersPerSecond = 4.92;
-        public static final double kMaxAccelerationMetersPerSecondSquared = 4.92;
+        public static final double kMaxAccelerationMetersPerSecondSquared = 10;
         public static final double kMaxAngularSpeedRadiansPerSecond = Math.PI;
-        public static final double kMaxAngularSpeedRadiansPerSecondSquared = Math.PI;
+        public static final double kMaxAngularSpeedRadiansPerSecondSquared = 4*Math.PI;
 
 
         public static final double kPathFollowerMaxSpeed = AutoConstants.kMaxSpeedMetersPerSecond; // Max module speed, in m/s
