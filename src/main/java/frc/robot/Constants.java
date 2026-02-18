@@ -18,6 +18,7 @@ import frc.robot.utils.vision.VisionConfig;
 
 public final class Constants {
     public static final String robotName = "robot360";
+    public static final double schedulerPeriodTime = 0.02;
 
     public static final class SwerveModuleConstants {
         public static final boolean kTurningEncoderInverted = true;
@@ -141,6 +142,21 @@ public final class Constants {
 
     public static class ShooterConstants {
         public static final double kVelocityFactor = 1;
+
+        public static final double kHoodMotorFreeSpeed = Configuration.getInstance().getDouble("Shooter", "hoodMotorFreeSpeed");
+        public static final double kHoodPlanetaryRatio = Configuration.getInstance().getDouble("Shooter", "hoodPlanetaryRatio");
+        public static final double kHoodPinionTeeth = Configuration.getInstance().getDouble("Shooter", "hoodPinionTeeth");
+        public static final double kHoodLanternTeeth = Configuration.getInstance().getDouble("Shooter", "hoodLanternTeeth");
+
+        public static final double kHoodPositionConversion = 360 * kHoodPinionTeeth / (kHoodPlanetaryRatio * kHoodLanternTeeth);
+        public static final double kHoodVelocityConversion = kHoodPositionConversion / 60;
+        public static final double kHoodMaxVelocityDegreesPerSec = kHoodMotorFreeSpeed * kHoodVelocityConversion;
+        public static final double kHoodMaxAcceleration = Configuration.getInstance().getDouble("Shooter", "hoodMaxAcceleration");
+        public static final double kHoodStallDetectCurrent = 5; //amps
+        public static final double kHoodStallSpeedTolerance = 5; //Degrees per second
+        public static final double kHoodMaxAngle = Configuration.getInstance().getDouble("Shooter", "hoodMaxAngle");
+        public static final double kHoodMinAngle = Configuration.getInstance().getDouble("Shooter", "hoodMinAngle");
+        public static final double kHoodToleranceDegrees = 1.0;
     }
 
     public static final class OIConstants {
