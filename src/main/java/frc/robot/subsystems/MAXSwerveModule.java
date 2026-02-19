@@ -106,6 +106,8 @@ public class MAXSwerveModule {
         .pid(SwerveModuleConstants.kDrivingP, SwerveModuleConstants.kDrivingI, SwerveModuleConstants.kDrivingD)
         .outputRange(SwerveModuleConstants.kDrivingMinOutput, SwerveModuleConstants.kDrivingMaxOutput)
         .feedForward.kV(SwerveModuleConstants.kDrivingVelocityFF);
+/*                   kA(SwerveModuleConstants.kDrivingA) 
+                     kS(SwerveModuleConstants.kDrivingS); */
 
     m_drivingSpark.configure(m_drivingConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
     m_drivingEncoder = m_drivingSpark.getEncoder();

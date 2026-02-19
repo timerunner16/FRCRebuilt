@@ -17,6 +17,7 @@ import frc.robot.utils.Configuration;
 import frc.robot.utils.vision.VisionConfig;
 
 public final class Constants {
+    static final Configuration config = Configuration.getInstance();
     public static final String robotName = "robot360";
     public static final double schedulerPeriodTime = 0.02;
 
@@ -29,27 +30,27 @@ public final class Constants {
         public static final int kTurningMotorCurrentLimit = 20;
         public static final int kDrivingMotorCurrentLimit = 80;
 
-        public static final double kWheelDiameterMeters = 0.0762;
+        public static final double kWheelDiameterMeters = config.getDouble("Drive", "WheelDiameter");
         public static final double kWheelCircumferenceMeters = kWheelDiameterMeters * Math.PI;
 
-        public static final int kDrivingMotorPinionTeeth = 13;
+        public static final int kDrivingMotorPinionTeeth = config.getInt("Drive", "PinionTeeth");
         public static final double kDrivingMotorReduction = (45.0*22)/(kDrivingMotorPinionTeeth*15);
 
-        public static final double kVortexFreeSpeedRPM = 6784;
-        public static final double kDrivingMotorFreeSpeedRPS = kVortexFreeSpeedRPM / 60;
-        public static final double kDriveWheelFreeSpeedRPS = (kDrivingMotorFreeSpeedRPS * kWheelCircumferenceMeters) / kDrivingMotorReduction;
+        public static final double kDriveMotorFreeSpeedRPM = config.getInt("Drive", "DriveMotorFreeSpeed");
+        public static final double kDrivingMotorFreeSpeedRPS = kDriveMotorFreeSpeedRPM / 60;
+        public static final double kDriveWheelFreeSpeedMPS = (kDrivingMotorFreeSpeedRPS * kWheelCircumferenceMeters) / kDrivingMotorReduction;
         static double nominalVoltage = 12.0;
-        public static final double kDrivingVelocityFF = 1.0 / kDriveWheelFreeSpeedRPS;
 
-
-        public static final double kDrivingP = Configuration.getInstance().getDouble("Drive", "kDrivingP");
-        public static final double kDrivingI = 0;
-        public static final double kDrivingD = 0;
-        public static final double kDrivingFF = 1 / kDriveWheelFreeSpeedRPS;
+        public static final double kDrivingP = config.getDouble("Drive", "DrivingkP");
+        public static final double kDrivingI = config.getDouble("Drive", "DrivingkI");
+        public static final double kDrivingD = config.getDouble("Drive", "DrivingkD");
+        public static final double kDrivingA = config.getDouble("Drive", "DrivingkA");
+        public static final double kDrivingS = config.getDouble("Drive", "DrivingkS");
+        public static final double kDrivingVelocityFF = 1.0 / kDriveWheelFreeSpeedMPS;
         public static final double kDrivingMinOutput = -1;
         public static final double kDrivingMaxOutput = 1;
 
-        public static final double kTurningP = Configuration.getInstance().getDouble("Drive", "kTurningP");
+        public static final double kTurningP = Configuration.getInstance().getDouble("Drive", "TurningkP");
         public static final double kTurningI = 0;
         public static final double kTurningD = 0;
         public static final double kTurningFF = 0;
@@ -66,7 +67,7 @@ public final class Constants {
     }
 
     public static final class DriveConstants {
-        public static final double kMaxSpeedMetersPerSecond = 4.92;
+        public static final double kMaxSpeedMetersPerSecond = SwerveModuleConstants.kDriveWheelFreeSpeedMPS;
         public static final double kMaxAngularSpeed = 2 * Math.PI;
 
         // TODO: correct module positions

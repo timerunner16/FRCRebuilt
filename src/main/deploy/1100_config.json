@@ -25,12 +25,16 @@
     },
   
     "Drive" : [
-       {"varName" : "frontRightChassisAngularOffset", "value" : 0.0 },
-       {"varName" : "frontLeftChassisAngularOffset", "value" : -1.570796 },
-       {"varName" : "backRightChassisAngularOffset", "value" : 1.570796 },
-       {"varName" : "backLeftChassisAngularOffset", "value" : 3.141593 },
-       {"varName" : "kDrivingP", "value" : 0.02}
-   ],
+       {"varName" : "DriveMotorFreeSpeed", "value" : 6784},
+       {"varName" : "WheelDiameter", "value" : 0.0762},
+       {"varName" : "PinionTeeth", "value" : 14},
+       {"varName" : "DrivingkP", "value" : 0.02},
+       {"varName" : "DrivingkI", "value" : 0.0},
+       {"varName" : "DrivingkD", "value" : 0.0},
+       {"varName" : "DrivingkS", "value" : 0.0187},
+       {"varName" : "DrivingkA", "value" : 0.0437},
+       {"varName" : "TurningkP", "value" : 1.0}
+    ],
 
    "Intake" : [
        {"varName" : "intakeEnabled", "value" : false},
@@ -113,8 +117,15 @@
        "backLeftDrive" :     {"cType":"SparkMax", "mType":"kBrushless", "canid":6}
    },
    "Drive" : [
-       {"varName" : "kDrivingP", "value" : 0.02},
-       {"varName" : "kTurningP", "value" : 1.0}
+       {"varName" : "DriveMotorFreeSpeed", "value" : 6784},
+       {"varName" : "WheelDiameter", "value" : 0.0762},
+       {"varName" : "PinionTeeth", "value" : 14},
+       {"varName" : "DrivingkP", "value" : 0.02},
+       {"varName" : "DrivingkI", "value" : 0.0},
+       {"varName" : "DrivingkD", "value" : 0.0},
+       {"varName" : "DrivingkS", "value" : 0.0187},
+       {"varName" : "DrivingkA", "value" : 0.0437},
+       {"varName" : "TurningkP", "value" : 1.0}
     ],
    "Spindex" : [
        {"varName" : "spindexEnabled", "value" : false},
