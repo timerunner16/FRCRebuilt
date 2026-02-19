@@ -55,11 +55,15 @@
 
         {"varName" : "turretEnabled", "value" : false},
         {"varName" : "turretRotationCANid", "value" : 12},
-        {"varName" : "tuneTurretPID", "value" : false},
+        {"varName" : "tuneTurret", "value" : false},
 
         {"varName" : "turretP", "value": 0},
         {"varName" : "turretI", "value": 0},
         {"varName" : "turretD", "value": 0},
+
+        {"varName" : "turretKs", "value": 0},
+        {"varName" : "turretKv", "value": 0},
+        {"varName" : "turretKa", "value": 0},
 
         {"varName" : "turretPositionFactor", "value" : 6.28319},
 
@@ -150,11 +154,15 @@
 
         {"varName" : "turretEnabled", "value" : false},
         {"varName" : "turretRotationCANid", "value" : 12},
-        {"varName" : "tuneTurretPID", "value" : false},
+        {"varName" : "tuneTurret", "value" : false},
 
         {"varName" : "turretP", "value": 0},
         {"varName" : "turretI", "value": 0},
         {"varName" : "turretD", "value": 0},
+
+        {"varName" : "turretKs", "value": 0},
+        {"varName" : "turretKv", "value": 0},
+        {"varName" : "turretKa", "value": 0},
 
         {"varName" : "turretPositionFactor", "value" : 6.28319},
 
