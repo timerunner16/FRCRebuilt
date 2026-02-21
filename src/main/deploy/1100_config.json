@@ -25,12 +25,16 @@
     },
   
     "Drive" : [
-       {"varName" : "frontRightChassisAngularOffset", "value" : 0.0 },
-       {"varName" : "frontLeftChassisAngularOffset", "value" : -1.570796 },
-       {"varName" : "backRightChassisAngularOffset", "value" : 1.570796 },
-       {"varName" : "backLeftChassisAngularOffset", "value" : 3.141593 },
-       {"varName" : "kDrivingP", "value" : 0.02}
-   ],
+       {"varName" : "DriveMotorFreeSpeed", "value" : 6784},
+       {"varName" : "WheelDiameter", "value" : 0.0762},
+       {"varName" : "PinionTeeth", "value" : 13},
+       {"varName" : "DrivingkP", "value" : 0.02},
+       {"varName" : "DrivingkI", "value" : 0.0},
+       {"varName" : "DrivingkD", "value" : 0.0},
+       {"varName" : "DrivingkS", "value" : 0.0187},
+       {"varName" : "DrivingkA", "value" : 0.0437},
+       {"varName" : "TurningkP", "value" : 1.0}
+    ],
 
    "Intake" : [
        {"varName" : "intakeEnabled", "value" : false},
@@ -55,11 +59,15 @@
 
         {"varName" : "turretEnabled", "value" : false},
         {"varName" : "turretRotationCANid", "value" : 12},
-        {"varName" : "tuneTurretPID", "value" : false},
+        {"varName" : "tuneTurret", "value" : false},
 
         {"varName" : "turretP", "value": 0},
         {"varName" : "turretI", "value": 0},
         {"varName" : "turretD", "value": 0},
+
+        {"varName" : "turretKs", "value": 0},
+        {"varName" : "turretKv", "value": 0},
+        {"varName" : "turretKa", "value": 0},
 
         {"varName" : "turretPositionFactor", "value" : 6.28319},
 
@@ -71,8 +79,24 @@
         {"varName" : "turretPositionY", "value" : 0},
         {"varName" : "turretPositionZ", "value" : 0},
 
+        {"varName" : "hoodEnabled", "value" : false},
         {"varName" : "hoodAngleMotorCANid", "value" : 13},
-        {"varName" : "chimneyMotorCANid", "value" : 14}
+        {"varName" : "tuneHood", "value" : false},
+
+        {"varName" : "hoodkG", "value" : 0},
+        {"varName" : "hoodkS", "value" : 0},
+        {"varName" : "hoodkV", "value" : 0},
+        {"varName" : "hoodkP", "value" : 0},
+        {"varName" : "hoodkI", "value" : 0},
+        {"varName" : "hoodkD", "value" : 0},
+
+        {"varName" : "hoodPlanetaryRatio", "value" : 0.04},
+        {"varName" : "hoodPinionTeeth", "value" : 10},
+        {"varName" : "hoodLanternTeeth", "value" : 128},
+        {"varName" : "hoodMotorFreeSpeed", "value" : 5676},
+        {"varName" : "hoodMaxAcceleration", "value" : 720},
+        {"varName" : "hoodMaxAngle", "value" : 40},
+        {"varName" : "hoodMinAngle", "value": 0}
     ],
 
    "visionConfig" : [
@@ -90,17 +114,26 @@
        "backRightTurning" :  {"cType":"SparkMax", "mType":"kBrushless", "canid":9},
        "backRightDrive" :    {"cType":"SparkMax", "mType":"kBrushless", "canid":8},
        "backLeftTurning" :   {"cType":"SparkMax", "mType":"kBrushless", "canid":7},
-       "backLeftDrive" :     {"cType":"SparkMax", "mType":"kBrushless", "canid":6}
+       "backLeftDrive" :     {"cType":"SparkMax", "mType":"kBrushless", "canid":6},
+       "climberRight"  :     {"cType":"SparkFlex", "mType":"kBrushless", "canid":18},
+       "climberLeft"  :      {"cType":"SparkFlex", "mType":"kBrushless", "canid":19}
    },
    "Drive" : [
-       {"varName" : "kDrivingP", "value" : 0.02},
-       {"varName" : "kTurningP", "value" : 1.0}
+       {"varName" : "DriveMotorFreeSpeed", "value" : 6784},
+       {"varName" : "WheelDiameter", "value" : 0.0762},
+       {"varName" : "PinionTeeth", "value" : 13},
+       {"varName" : "DrivingkP", "value" : 0.02},
+       {"varName" : "DrivingkI", "value" : 0.0},
+       {"varName" : "DrivingkD", "value" : 0.0},
+       {"varName" : "DrivingkS", "value" : 0.0187},
+       {"varName" : "DrivingkA", "value" : 0.0437},
+       {"varName" : "TurningkP", "value" : 1.0}
     ],
-   "Spindex" : [
-       {"varName" : "spindexEnabled", "value" : false},
-       {"varName" : "spindexCanId", "value" : 15},
-       {"varName" : "spindexStallLimit", "value" : 0},
-       {"varName" : "spindexFreeLimit", "value" : 60}
+   "Spindexer" : [
+       {"varName" : "spindexerEnabled", "value" : false},
+       {"varName" : "spindexerCanId", "value" : 15},
+       {"varName" : "spindexerStallLimit", "value" : 0},
+       {"varName" : "spindexerFreeLimit", "value" : 60}
    ],
    "Intake" : [
        {"varName" : "intakeEnabled", "value" : false},
@@ -135,11 +168,15 @@
 
         {"varName" : "turretEnabled", "value" : false},
         {"varName" : "turretRotationCANid", "value" : 12},
-        {"varName" : "tuneTurretPID", "value" : false},
+        {"varName" : "tuneTurret", "value" : false},
 
         {"varName" : "turretP", "value": 0},
         {"varName" : "turretI", "value": 0},
         {"varName" : "turretD", "value": 0},
+
+        {"varName" : "turretKs", "value": 0},
+        {"varName" : "turretKv", "value": 0},
+        {"varName" : "turretKa", "value": 0},
 
         {"varName" : "turretPositionFactor", "value" : 6.28319},
 
@@ -151,10 +188,29 @@
         {"varName" : "turretPositionY", "value" : 0},
         {"varName" : "turretPositionZ", "value" : 0},
 
+        {"varName" : "hoodEnabled", "value" : true},
         {"varName" : "hoodAngleMotorCANid", "value" : 13},
-        {"varName" : "kP", "value" : 0},
-        {"varName" : "kI", "value" : 0},
-        {"varName" : "kD", "value" : 0}
+        {"varName" : "tuneHood", "value" : false},
+
+        {"varName" : "hoodkG", "value" : 0},
+        {"varName" : "hoodkS", "value" : 0},
+        {"varName" : "hoodkV", "value" : 0},
+        {"varName" : "hoodkP", "value" : 0},
+        {"varName" : "hoodkI", "value" : 0},
+        {"varName" : "hoodkD", "value" : 0},
+
+        {"varName" : "hoodPlanetaryRatio", "value" : 0.04},
+        {"varName" : "hoodPinionTeeth", "value" : 10},
+        {"varName" : "hoodLanternTeeth", "value" : 128},
+        {"varName" : "hoodMotorFreeSpeed", "value" : 5676},
+        {"varName" : "hoodMaxAcceleration", "value" : 720},
+        {"varName" : "hoodMaxAngle", "value" : 40},
+        {"varName" : "hoodMinAngle", "value": 0},
+
+        {"varName" : "chimneyEnabled", "value": false},
+        {"varName" : "chimneyMotorCANid", "value": 20}
+        
+
    ],
    "LED" : [
         {"varName" : "LEDPort", "value": 1},

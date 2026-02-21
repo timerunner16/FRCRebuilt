@@ -6,14 +6,12 @@ package frc.robot.commands.drive;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
-import edu.wpi.first.math.geometry.Rotation2d;
-import frc.robot.OI;
 import frc.robot.Constants.OIConstants;
 import frc.robot.subsystems.Drive;
 import frc.robot.testingdashboard.Command;
 import frc.robot.testingdashboard.TDNumber;
 import frc.robot.testingdashboard.TDSendable;
-import frc.robot.utils.SwerveDriveInputs;
+import frc.robot.utils.drive.SwerveDriveInputs;
 
 public class SwerveDrive extends Command {
   private SwerveDriveInputs m_DriveInputs;
@@ -50,12 +48,7 @@ public class SwerveDrive extends Command {
   @Override
   public void execute() {
     double rotationPower = 0.0;
-    if (OI.getInstance().getDriverController().getRightBumperButton()) {
-      rotationPower = getRotationFromTransalation();
-    }
-    else {
-      rotationPower = getRotationFromOperator();
-    }
+    rotationPower = getRotationFromOperator();
     m_drive.drive(
       -MathUtil.applyDeadband(m_DriveInputs.getX(), OIConstants.kDriveDeadband),
       -MathUtil.applyDeadband(m_DriveInputs.getY(), OIConstants.kDriveDeadband),
@@ -80,15 +73,7 @@ public class SwerveDrive extends Command {
     }
     return rotationPower;
   }
-
-  private double getRotationFromTransalation() {
-    double x = -MathUtil.applyDeadband(m_DriveInputs.getX(), OIConstants.kDriveDeadband);
-    double y = -MathUtil.applyDeadband(m_DriveInputs.getY(), OIConstants.kDriveDeadband);
-    Rotation2d heading = new Rotation2d(x, y);
-    double currentHeading = m_drive.getHeading();
-    return m_headingController.calculate(currentHeading, heading.getDegrees());
-  }
-
+  
   // Called once the command ends or is interrupted.
   @Override
   public void end(boolean interrupted) {}

@@ -11,6 +11,8 @@ import java.util.List;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import frc.robot.utils.Configuration;
+
 /*
   JSON RobotMap config format:
   [
@@ -46,11 +48,13 @@ public class RobotMap {
   public static int U_OPERATOR_XBOX_CONTROLLER = 1;
 
   // [S]hooter
-  public static boolean S_ENABLED = true;
+  public static boolean S_ENABLED = Configuration.getInstance().getBool("Shooter", "Enabled");
 
   // [V]ision
-  public static boolean V_ENABLED = true;
+  public static boolean V_ENABLED = Configuration.getInstance().getBool("Vision", "Enabled");
+;
 
   // [C]limber
-  public static boolean C_ENABLED = true;
+  public static boolean C_ENABLED = Configuration.getInstance().getBool("Climber", "Enabled");
+;
 }

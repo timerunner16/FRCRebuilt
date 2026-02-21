@@ -4,13 +4,13 @@
 
 package frc.robot.subsystems;
 
-import com.revrobotics.spark.SparkBase.PersistMode;
-import com.revrobotics.spark.SparkBase.ResetMode;
+import com.revrobotics.PersistMode;
+import com.revrobotics.ResetMode;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.spark.FeedbackSensor;
 import com.revrobotics.spark.SparkClosedLoopController;
-import com.revrobotics.spark.SparkFlex;
-import com.revrobotics.spark.config.SparkFlexConfig;
+import com.revrobotics.spark.SparkBase;
+import com.revrobotics.spark.config.SparkBaseConfig;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.ElevatorFeedforward;
@@ -53,8 +53,8 @@ public class Climber extends SubsystemBase {
   double m_climberkA = Constants.ClimberConstants.kClimberkA;
   private double m_climberLastAngle = 0;
 
-  SparkFlex m_climberLeftSparkFlex;
-  SparkFlex m_climberRightSparkFlex;
+  SparkBase m_climberLeftSpark;
+  SparkBase m_climberRightSpark;
 
   TDBoolean m_TDHighLimitHit;
   TDBoolean m_TDLowLimitHit;
@@ -72,7 +72,7 @@ public class Climber extends SubsystemBase {
   TrapezoidProfile.State m_climberSetpoint;
   TDNumber m_TDclimberProfilePosition;
 
-  SparkFlexConfig m_leftSparkFlexConfig;
+  SparkBaseConfig m_leftSparkConfig;
 
   private final DCMotor m_climberMotor = DCMotor.getNEO(2);
 
@@ -103,13 +103,15 @@ public class Climber extends SubsystemBase {
     if (RobotMap.C_ENABLED) {
       // Setup Climber (Yes this is just Ctrl C & V)
       
-      // m_climberLeftSparkFlex = new SparkFlex(RobotMap.E_LEFTMOTOR, MotorType.kBrushless);
-      // m_climberRightSparkFlex = new SparkFlex(RobotMap.E_RIGHTMOTOR, MotorType.kBrushless);
+      var sparkAndConfigRight = config().getMotorController("climberRight");
+      var sparkAndConfigLeft  = config().getMotorController("climberLeft");
+      m_climberLeftSpark = sparkAndConfigLeft.m_controller;
+      m_climberRightSpark = sparkAndConfigRight.m_controller;
 
-      m_leftSparkFlexConfig = new SparkFlexConfig();
-      SparkFlexConfig rightClimberSparkFlexConfig = new SparkFlexConfig();
+      m_leftSparkConfig = sparkAndConfigLeft.m_config;
+      var rightClimberSparkConfig = sparkAndConfigRight.m_config;
 
-      rightClimberSparkFlexConfig.follow(m_climberLeftSparkFlex, true);
+      rightClimberSparkConfig.follow(m_climberLeftSpark, true);
 
       m_TDclimberP = new TDNumber(this, "Climber PID", "climbP", Constants.ClimberConstants.kClimberP);
       m_TDclimberI = new TDNumber(this, "Climber PID", "climbI", Constants.ClimberConstants.kClimberI);
@@ -121,13 +123,13 @@ public class Climber extends SubsystemBase {
 
       m_TDclimberFFout = new TDNumber(this, "Climber PID", "FF Out");
 
-      m_leftSparkFlexConfig.closedLoop.pid(Constants.ClimberConstants.kClimberP, Constants.ClimberConstants.kClimberI,
+      m_leftSparkConfig.closedLoop.pid(Constants.ClimberConstants.kClimberP, Constants.ClimberConstants.kClimberI,
           Constants.ClimberConstants.kClimberD);
-      m_leftSparkFlexConfig.closedLoop.feedbackSensor(FeedbackSensor.kPrimaryEncoder);
-      m_leftSparkFlexConfig.closedLoop.positionWrappingEnabled(false);
+      m_leftSparkConfig.closedLoop.feedbackSensor(FeedbackSensor.kPrimaryEncoder);
+      m_leftSparkConfig.closedLoop.positionWrappingEnabled(false);
 
-      m_climberClosedLoopController = m_climberLeftSparkFlex.getClosedLoopController();
-      m_climberMotorEncoder = m_climberLeftSparkFlex.getEncoder();
+      m_climberClosedLoopController = m_climberLeftSpark.getClosedLoopController();
+      m_climberMotorEncoder = m_climberLeftSpark.getEncoder();
       m_climberMotorEncoder.setPosition(0);
 
       m_climberFeedForwardController = new ElevatorFeedforward(Constants.ClimberConstants.kClimberkS, Constants.ClimberConstants.kClimberkG, Constants.ClimberConstants.kClimberkV, Constants.ClimberConstants.kClimberkA);
@@ -141,8 +143,8 @@ public class Climber extends SubsystemBase {
       m_TDclimberProfilePosition = new TDNumber(this, "Climber PID", "Profile Position");
 
       m_climberEncoderValueInches = new TDNumber(this, "Climber Encoder Values", "Height (inches)", getClimberAngle());
-      m_climberLeftCurrentOutput = new TDNumber(this, "Current", "Left Climber Output", m_climberLeftSparkFlex.getOutputCurrent());
-      m_climberRightCurrentOutput = new TDNumber(this, "Current", "Right Climber Output", m_climberRightSparkFlex.getOutputCurrent());
+      m_climberLeftCurrentOutput = new TDNumber(this, "Current", "Left Climber Output", m_climberLeftSpark.getOutputCurrent());
+      m_climberRightCurrentOutput = new TDNumber(this, "Current", "Right Climber Output", m_climberRightSpark.getOutputCurrent());
     }
   }
 
@@ -192,28 +194,28 @@ public class Climber extends SubsystemBase {
   public void periodic() {
     // This method will be called once per scheduler run
     if (Constants.ClimberConstants.kEnableClimberPIDTuning &&
-        m_climberLeftSparkFlex != null) {
+        m_climberLeftSpark != null) {
       double tmp = m_TDclimberP.get();
       boolean changed = false;
       if (tmp != m_climberP) {
         m_climberP = tmp;
-        m_leftSparkFlexConfig.closedLoop.p(m_climberP);
+        m_leftSparkConfig.closedLoop.p(m_climberP);
         changed = true;
       }
       tmp = m_TDclimberI.get();
       if (tmp != m_climberI) {
         m_climberI = tmp;
         changed = true;
-        m_leftSparkFlexConfig.closedLoop.i(m_climberI);
+        m_leftSparkConfig.closedLoop.i(m_climberI);
       }
       tmp = m_TDclimberD.get();
       if (tmp != m_climberD) {
         m_climberD = tmp;
         changed = true;
-        m_leftSparkFlexConfig.closedLoop.d(m_climberD);
+        m_leftSparkConfig.closedLoop.d(m_climberD);
       }
       if(changed) {
-        m_climberLeftSparkFlex.configure(m_leftSparkFlexConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+        m_climberLeftSpark.configure(m_leftSparkConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
       }
 
       boolean ffchanged = false;

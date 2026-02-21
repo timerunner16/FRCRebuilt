@@ -16,7 +16,7 @@ import frc.robot.Constants;
 import frc.robot.subsystems.Drive;
 import frc.robot.testingdashboard.Command;
 import frc.robot.testingdashboard.TDNumber;
-import frc.robot.utils.TargetPose;
+import frc.robot.utils.drive.TargetPose;
 
 public class PathFindToPose extends Command {
   private Drive m_drive;

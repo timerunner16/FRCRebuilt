@@ -16,7 +16,7 @@ import frc.robot.testingdashboard.Command;
 import frc.robot.testingdashboard.TDNumber;
 import frc.robot.testingdashboard.TDSendable;
 import frc.robot.utils.FieldUtils;
-import frc.robot.utils.SwerveDriveInputs;
+import frc.robot.utils.drive.SwerveDriveInputs;
 import frc.robot.Constants;
 import frc.robot.subsystems.Drive;
 

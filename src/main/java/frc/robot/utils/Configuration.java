@@ -178,8 +178,7 @@ public class Configuration {
     if (m_VisionConfigs != null) return m_VisionConfigs;
     if (m_config == null) return null;
     JsonNode visionConfig = m_config.findValue("visionConfig");
-    if (visionConfig != null) 
-    {
+    if (visionConfig != null) {
       System.out.println("got vision " + visionConfig.toString());
     }
 
@@ -202,8 +201,7 @@ public class Configuration {
     try {
       ObjectMapper om = new ObjectMapper();
       List<RobotMapConfigValue> subsystemValues = om.readValue(subsystemConfig.toString(), new TypeReference<List<RobotMapConfigValue>>(){});
-      for (int i = 0; i < subsystemValues.size(); i++)
-      {
+      for (int i = 0; i < subsystemValues.size(); i++) {
         RobotMapConfigValue value = subsystemValues.get(i);
         values.put(value.varName, value.value);
       }
@@ -216,24 +214,28 @@ public class Configuration {
   public double getDouble(String subsystem, String name)
   {
     Map<String, Object> values = m_values.get(subsystem);
-    if (values == null)
-    {
+    if (values == null) {
       loadSubsystem(subsystem);
       values = m_values.get(subsystem);
     }
-    if (values == null || values.get(name) == null) return 0.0;
+    if (values == null || values.get(name) == null) {
+       System.err.println("Unconfigured double " + subsystem + "/" + name);
+       return 0.0;
+    }
     return Double.valueOf(values.get(name).toString()).doubleValue();
   }
 
   public int getInt(String subsystem, String name)
   {
     Map<String, Object> values = m_values.get(subsystem);
-    if (values == null)
-    {
+    if (values == null) {
       loadSubsystem(subsystem);
       values = m_values.get(subsystem);
     }
-    if (values == null || values.get(name) == null) return 0;
+    if (values == null || values.get(name) == null) {
+      System.err.println("Unconfigured integer " + subsystem + "/" + name);
+      return 0;
+    }
     return Integer.valueOf(values.get(name).toString()).intValue();
   }
 
@@ -245,7 +247,11 @@ public class Configuration {
       loadSubsystem(subsystem);
       values = m_values.get(subsystem);
     }
-    if (values == null || values.get(name) == null) return false;
+    if (values == null || values.get(name) == null)
+    {
+      System.err.println("Unconfigured boolean " + subsystem + "/" + name);
+      return false;
+    }
     return Boolean.valueOf(values.get(name).toString()).booleanValue();
   }
 }
