@@ -7,14 +7,15 @@ import frc.robot.utils.Configuration;
 public class IntakeOut extends Command{
 
     Intake m_intake;
-    Configuration cfg;
+    double m_intakeSpeed;
     
 
     public IntakeOut(){
         super(Intake.getInstance(), "Intake", "Ground Intake");
 
         m_intake = Intake.getInstance();
-        cfg = Configuration.getInstance();
+        m_intakeSpeed = Configuration.getInstance().getDouble("Intake", "intakeSpeed");
+
     }
 
     @Override 
@@ -23,7 +24,7 @@ public class IntakeOut extends Command{
     @Override
     public void execute() {
 
-        m_intake.spinOut(cfg.getInt("Intake", "intakeSpeed")); 
+        m_intake.spinOut(m_intakeSpeed); 
         //TODO use same variable as IntakeIn or vice versa 
     }
 

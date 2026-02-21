@@ -138,7 +138,7 @@
    "Intake" : [
        {"varName" : "intakeEnabled", "value" : false},
        {"varName" : "intakeRollerCanId", "value" : 16},
-       {"varName" : "intakeSpeed", "value" : 10}, 
+       {"varName" : "intakeSpeed", "value" : 1.0}, 
        {"varName" : "intakeRollerStallLimit", "value" : 25},
        {"varName" : "intakeRollerFreeLimit", "value" : 60}
    ],
