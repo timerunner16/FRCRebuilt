@@ -11,7 +11,7 @@ public class IntakeOut extends Command{
     
 
     public IntakeOut(){
-        super(Intake.getInstance(), "Intake", "Ground Intake");
+        super(Intake.getInstance(), "Intake", "IntakeOut");
 
         m_intake = Intake.getInstance();
         m_intakeSpeed = Configuration.getInstance().getDouble("Intake", "intakeSpeed");
