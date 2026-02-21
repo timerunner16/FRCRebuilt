@@ -132,6 +132,7 @@
    "Spindexer" : [
        {"varName" : "spindexerEnabled", "value" : false},
        {"varName" : "spindexerCanId", "value" : 15},
+       {"varName" : "spindexSpeed", "value" : 1.0},
        {"varName" : "spindexerStallLimit", "value" : 0},
        {"varName" : "spindexerFreeLimit", "value" : 60}
    ],
