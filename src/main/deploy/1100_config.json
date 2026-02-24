@@ -145,6 +145,7 @@
        {"varName" : "intakeDeployerCanId1", "value" : 17},
        {"varName" : "intakeDeployerCanId2", "value" : 19},
        {"varName" : "intakeDeployer2Invert", "value" : true},
+       {"varName" : "intakeDeployedThreshold", "value" : 0.0},
        {"varName" : "intakeDeployerStallLimit", "value" : 25},
        {"varName" : "intakeDeployerFreeLimit", "value" : 60}
    ],
