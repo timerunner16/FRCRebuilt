@@ -518,8 +518,9 @@ public class Shooter extends SubsystemBase{
         double controlledAngle = angleToTarget(m_TDturretTargetAngle.get(), state);
         m_turretSetpoint = new TrapezoidProfile.State(controlledAngle, m_TDturretSpeed.get());
 
+        double prevVelocity = m_turretState.velocity;
         m_turretState = m_turretProfile.calculate(Constants.schedulerPeriodTime, m_turretState, m_turretSetpoint);
-        double turretFF = m_turretFF.calculate(m_turretState.velocity);
+        double turretFF = m_turretFF.calculateWithVelocities(prevVelocity, m_turretState.velocity);
 
         m_turretMotor.getClosedLoopController().setSetpoint(
             m_turretState.position, ControlType.kPosition,
