@@ -166,7 +166,10 @@ public final class Constants {
 
         public static final double kTurretMaxAccel = 10*Math.PI;
         public static final double kTurretMaxVelocity = 2*Math.PI;
+        
+        public static final double kBasicShooterRPM = 2000;
 
+        public static final double kChimneySpeed = 0.7;
     }
 
     public static final class OIConstants {
