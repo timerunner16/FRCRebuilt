@@ -189,12 +189,12 @@
 
         {"varName" : "hoodEnabled", "value" : true},
         {"varName" : "hoodAngleMotorCANid", "value" : 13},
-        {"varName" : "tuneHood", "value" : false},
+        {"varName" : "tuneHood", "value" : true},
 
-        {"varName" : "hoodkG", "value" : 0},
-        {"varName" : "hoodkS", "value" : 0},
-        {"varName" : "hoodkV", "value" : 0},
-        {"varName" : "hoodkP", "value" : 0},
+        {"varName" : "hoodkG", "value" : -0.1},
+        {"varName" : "hoodkS", "value" : 0.01},
+        {"varName" : "hoodkV", "value" : 0.08},
+        {"varName" : "hoodkP", "value" : 0.1},
         {"varName" : "hoodkI", "value" : 0},
         {"varName" : "hoodkD", "value" : 0},
 
