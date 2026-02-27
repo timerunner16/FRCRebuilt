@@ -175,7 +175,7 @@ public final class Constants {
 
     public static final class ClimberConstants {
         // Climber Constants
-        public static final boolean kEnableClimberPIDTuning = false;
+        public static final boolean kEnableClimberPIDTuning = Configuration.getInstance().getBool("Climber", "tuneClimber");
         public static final boolean kEnableClimberClosedLoopControl = true;
         public static final double kClimberP = 0.3;
         public static final double kClimberI = 0;

@@ -41,7 +41,6 @@ public class Vision extends SubsystemBase {
     List<VisionConfig> myConfig = Configuration.getInstance().getVisionConfigs();
     if (myConfig != null)
     {
-      // m_visionSystems.ensureCapacity(m_visionConfig.length);
       for(VisionConfig config : myConfig) {
          VisionSystem system = new VisionSystem(config);
          m_visionSystems.put(config.cameraName, system);

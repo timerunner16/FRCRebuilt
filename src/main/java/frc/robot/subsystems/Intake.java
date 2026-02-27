@@ -21,7 +21,7 @@ import frc.robot.testingdashboard.SubsystemBase;
 
 
 public class Intake extends SubsystemBase{
-
+    private boolean m_enabled;
     SparkFlex m_rollerMotor;
     SparkFlex m_deployMotor1;
     SparkFlex m_deployMotor2;
@@ -40,7 +40,8 @@ public class Intake extends SubsystemBase{
 
     private Intake(){
         super("Intake");
-        if (cfgBool("intakeEnabled") == true){
+        m_enabled = cfgBool("intakeEnabled");
+        if (m_enabled){
             m_rollerMotor = new SparkFlex(cfgInt("intakeRollerCanId"), MotorType.kBrushless);
             m_deployMotor1 = new SparkFlex(cfgInt("intakeDeployerCanId1"), MotorType.kBrushless);
             m_deployMotor2 = new SparkFlex(cfgInt("intakeDeployerCanId2"), MotorType.kBrushless);
@@ -112,27 +113,27 @@ public class Intake extends SubsystemBase{
     }
     @Override
     public void periodic() {
-        if (m_deploying){
-            if (sparkCurrentLimitDetector.check() != HardLimitDirection.kForward){
-                m_deployMotor1.set(m_currentSpeed);
+        if(m_enabled){
+            if (m_deploying){
+                if (sparkCurrentLimitDetector.check() != HardLimitDirection.kForward){
+                    m_deployMotor1.set(m_currentSpeed);
+                } else {
+                    m_deployMotor1.set(-0);
+                }
             } else {
-                m_deployMotor1.set(-0);
+                if (sparkCurrentLimitDetector.check() != HardLimitDirection.kReverse){
+                    m_deployMotor1.set(-1 * m_currentSpeed);
+                } else {
+                    m_deployMotor1.set(-0);
+                }
             }
-        } else {
-            if (sparkCurrentLimitDetector.check() != HardLimitDirection.kReverse){
-                m_deployMotor1.set(-1 * m_currentSpeed);
-            } else {
-                m_deployMotor1.set(-0);
+
+            if (cfgBool("intakeEnabled") == true) {
+                m_TDrollerCurrentOutput.set(m_rollerMotor.getOutputCurrent());
+                m_TDdeployerCurrentOutput.set(m_deployMotor1.getOutputCurrent());
             }
         }
-
-        if (cfgBool("intakeEnabled") == true) {
-            m_TDrollerCurrentOutput.set(m_rollerMotor.getOutputCurrent());
-            m_TDdeployerCurrentOutput.set(m_deployMotor1.getOutputCurrent());
-        }
-        super.periodic();
-
-        
+        super.periodic();        
     }
     
 }
