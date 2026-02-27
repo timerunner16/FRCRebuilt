@@ -4,9 +4,12 @@
 
 package frc.robot.subsystems;
 
+import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.PersistMode;
 import com.revrobotics.ResetMode;
+import com.revrobotics.spark.SparkClosedLoopController.ArbFFUnits;
 import com.revrobotics.RelativeEncoder;
+import com.revrobotics.spark.ClosedLoopSlot;
 import com.revrobotics.spark.FeedbackSensor;
 import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkBase;
@@ -24,7 +27,6 @@ import edu.wpi.first.wpilibj.smartdashboard.Mechanism2d;
 import edu.wpi.first.wpilibj.smartdashboard.MechanismLigament2d;
 import edu.wpi.first.wpilibj.smartdashboard.MechanismRoot2d;
 import frc.robot.Constants;
-import frc.robot.RobotMap;
 import frc.robot.testingdashboard.SubsystemBase;
 import frc.robot.testingdashboard.TDBoolean;
 import frc.robot.testingdashboard.TDNumber;
@@ -32,7 +34,8 @@ import frc.robot.testingdashboard.TDNumber;
 public class Climber extends SubsystemBase {
   /** Creates a new Climber. */
   private static Climber m_Climber;
-
+  
+  private boolean m_enabled;
   TDNumber m_targetAngle;
   TDNumber m_climberEncoderValueInches;
   TDNumber m_climberCurrentOutput;
@@ -99,8 +102,9 @@ public class Climber extends SubsystemBase {
 
   private Climber() {
     super("Climber");
+    m_enabled = cfgBool("climberEnabled");
 
-    if (RobotMap.C_ENABLED) {
+    if (m_enabled) {
       // Setup Climber (Yes this is just Ctrl C & V)
       
       var sparkAndConfigRight = config().getMotorController("climberRight");
@@ -192,63 +196,72 @@ public class Climber extends SubsystemBase {
 
   @Override
   public void periodic() {
-    // This method will be called once per scheduler run
-    if (Constants.ClimberConstants.kEnableClimberPIDTuning &&
-        m_climberLeftSpark != null) {
-      double tmp = m_TDclimberP.get();
-      boolean changed = false;
-      if (tmp != m_climberP) {
-        m_climberP = tmp;
-        m_leftSparkConfig.closedLoop.p(m_climberP);
-        changed = true;
-      }
-      tmp = m_TDclimberI.get();
-      if (tmp != m_climberI) {
-        m_climberI = tmp;
-        changed = true;
-        m_leftSparkConfig.closedLoop.i(m_climberI);
-      }
-      tmp = m_TDclimberD.get();
-      if (tmp != m_climberD) {
-        m_climberD = tmp;
-        changed = true;
-        m_leftSparkConfig.closedLoop.d(m_climberD);
-      }
-      if(changed) {
-        m_climberLeftSpark.configure(m_leftSparkConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+    if(m_enabled)
+    {
+      // This method will be called once per scheduler run
+      if (Constants.ClimberConstants.kEnableClimberPIDTuning &&
+          m_climberLeftSpark != null) {
+        double tmp = m_TDclimberP.get();
+        boolean changed = false;
+        if (tmp != m_climberP) {
+          m_climberP = tmp;
+          m_leftSparkConfig.closedLoop.p(m_climberP);
+          changed = true;
+        }
+        tmp = m_TDclimberI.get();
+        if (tmp != m_climberI) {
+          m_climberI = tmp;
+          changed = true;
+          m_leftSparkConfig.closedLoop.i(m_climberI);
+        }
+        tmp = m_TDclimberD.get();
+        if (tmp != m_climberD) {
+          m_climberD = tmp;
+          changed = true;
+          m_leftSparkConfig.closedLoop.d(m_climberD);
+        }
+        if(changed) {
+          m_climberLeftSpark.configure(m_leftSparkConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+        }
+
+        boolean ffchanged = false;
+        tmp = m_TDclimberKg.get();
+        if(tmp != m_climberkG) {
+          m_climberkG = tmp;
+          ffchanged = true;
+        }
+        tmp = m_TDclimberKv.get();
+        if(tmp != m_climberkV) {
+          m_climberkV = tmp;
+          ffchanged = true;
+        }
+        tmp = m_TDclimberKs.get();
+        if(tmp != m_climberkS)
+        {
+          m_climberkS = tmp;
+          ffchanged = true;
+        }
+        tmp = m_TDclimberKa.get();
+        if(tmp != m_climberkA)
+        {
+          m_climberkA = tmp;
+          ffchanged = true;
+        }
+        if(ffchanged) {
+          m_climberFeedForwardController = new ElevatorFeedforward(m_climberkS, m_climberkG, m_climberkV, m_climberkA);
+        }
+        tmp = m_targetAngle.get();
+        if(tmp != m_climberLastAngle)
+        {
+          setClimberTargetAngle(tmp);
+        }
       }
 
-      boolean ffchanged = false;
-      tmp = m_TDclimberKg.get();
-      if(tmp != m_climberkG) {
-        m_climberkG = tmp;
-        ffchanged = true;
-      }
-      tmp = m_TDclimberKv.get();
-      if(tmp != m_climberkV) {
-        m_climberkV = tmp;
-        ffchanged = true;
-      }
-      tmp = m_TDclimberKs.get();
-      if(tmp != m_climberkS)
-      {
-        m_climberkS = tmp;
-        ffchanged = true;
-      }
-      tmp = m_TDclimberKa.get();
-      if(tmp != m_climberkA)
-      {
-        m_climberkA = tmp;
-        ffchanged = true;
-      }
-      if(ffchanged) {
-        m_climberFeedForwardController = new ElevatorFeedforward(m_climberkS, m_climberkG, m_climberkV, m_climberkA);
-      }
-      tmp = m_targetAngle.get();
-      if(tmp != m_climberLastAngle)
-      {
-        setClimberTargetAngle(tmp);
-      }
+      m_climberState = m_climberProfile.calculate(Constants.schedulerPeriodTime, m_climberState, m_climberSetpoint);
+
+      double climberFeedForward = m_climberFeedForwardController.calculate(m_climberState.velocity);
+
+      m_climberClosedLoopController.setSetpoint(m_climberState.position, ControlType.kPosition, ClosedLoopSlot.kSlot0, climberFeedForward, ArbFFUnits.kVoltage);
     }
   }
 }

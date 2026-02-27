@@ -158,6 +158,18 @@ public final class Constants {
         public static final double kHoodMaxAngle = Configuration.getInstance().getDouble("Shooter", "hoodMaxAngle");
         public static final double kHoodMinAngle = Configuration.getInstance().getDouble("Shooter", "hoodMinAngle");
         public static final double kHoodToleranceDegrees = 1.0;
+
+        public static final double kTurretPlanetaryRatio = Configuration.getInstance().getDouble("Shooter", "turretPlanetaryRatio");
+        public static final double kTurretPinionTeeth = Configuration.getInstance().getDouble("Shooter", "turretPinionTeeth");
+        public static final double kTurretGearTeeth = Configuration.getInstance().getDouble("Shooter", "turretGearTeeth");
+        public static final double kTurretPositionFactor = 2*Math.PI * kTurretPinionTeeth / (kTurretGearTeeth * kTurretPlanetaryRatio);
+
+        public static final double kTurretMaxAccel = 10*Math.PI;
+        public static final double kTurretMaxVelocity = 2*Math.PI;
+        
+        public static final double kBasicShooterRPM = 2000;
+
+        public static final double kChimneySpeed = 0.7;
     }
 
     public static final class OIConstants {
@@ -166,7 +178,7 @@ public final class Constants {
 
     public static final class ClimberConstants {
         // Climber Constants
-        public static final boolean kEnableClimberPIDTuning = false;
+        public static final boolean kEnableClimberPIDTuning = Configuration.getInstance().getBool("Climber", "tuneClimber");
         public static final boolean kEnableClimberClosedLoopControl = true;
         public static final double kClimberP = 0.3;
         public static final double kClimberI = 0;

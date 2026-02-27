@@ -42,7 +42,7 @@
     ],
   
     "Shooter": [
-        {"varName" : "flywheelEnabled", "value" : false},
+        {"varName" : "flywheelEnabled", "value" : true},
         {"varName" : "leftFlywheelCANid", "value" : 10},
         {"varName" : "rightFlywheelCANid", "value" : 11},
 
@@ -57,7 +57,7 @@
 
         {"varName" : "flywheelVelocityFactor", "value" : 1},
 
-        {"varName" : "turretEnabled", "value" : false},
+        {"varName" : "turretEnabled", "value" : true},
         {"varName" : "turretRotationCANid", "value" : 12},
         {"varName" : "tuneTurret", "value" : false},
 
@@ -69,7 +69,9 @@
         {"varName" : "turretKv", "value": 0},
         {"varName" : "turretKa", "value": 0},
 
-        {"varName" : "turretPositionFactor", "value" : 6.28319},
+        {"varName" : "turretPlanetaryRatio", "value" : 20},
+        {"varName" : "turretPinionTeeth", "value" : 12},
+        {"varName" : "turretGearTeeth", "value" : 68},
 
         {"varName" : "turretDeadzoneStart", "value": 6.28319},
         {"varName" : "turretHardLimit", "value" : 9.942478},
@@ -90,7 +92,7 @@
         {"varName" : "hoodkI", "value" : 0},
         {"varName" : "hoodkD", "value" : 0},
 
-        {"varName" : "hoodPlanetaryRatio", "value" : 0.04},
+        {"varName" : "hoodPlanetaryRatio", "value" : 20},
         {"varName" : "hoodPinionTeeth", "value" : 10},
         {"varName" : "hoodLanternTeeth", "value" : 128},
         {"varName" : "hoodMotorFreeSpeed", "value" : 5676},
@@ -98,6 +100,19 @@
         {"varName" : "hoodMaxAngle", "value" : 40},
         {"varName" : "hoodMinAngle", "value": 0}
     ],
+
+    "Spindexer" : [
+       {"varName" : "spindexerEnabled", "value" : false},
+       {"varName" : "spindexerCanId", "value" : 15},
+       {"varName" : "spindexerStallLimit", "value" : 0},
+       {"varName" : "spindexerFreeLimit", "value" : 60}
+   ],
+
+    "Climber" : [
+        {"varName" : "climberEnabled", "value" : false},
+        {"varName" : "tuneClimber", "value" : false},
+        {"varName" : "motorCanId", "value" : 18}
+   ],
 
    "visionConfig" : [
         {"name":"Arducam_OV9782_C","positionT":{"x":0.0,"y":0.0,"z":0.0},"positionR":{"quaternion":{"W":1.0,"X":0.0,"Y":0.0,"Z":0.0}},"primaryStrat":"LOWEST_AMBIGUITY","backupStrat":"CLOSEST_TO_CAMERA_HEIGHT"}
@@ -145,6 +160,7 @@
        {"varName" : "intakeDeployerCanId1", "value" : 17},
        {"varName" : "intakeDeployerCanId2", "value" : 19},
        {"varName" : "intakeDeployer2Invert", "value" : true},
+       {"varName" : "intakeDeployedThreshold", "value" : 0.0},
        {"varName" : "intakeDeployerStallLimit", "value" : 25},
        {"varName" : "intakeDeployerFreeLimit", "value" : 60}
    ],
@@ -166,18 +182,20 @@
         {"varName" : "flywheelVelocityFactor", "value" : 1},
 
         {"varName" : "turretEnabled", "value" : false},
-        {"varName" : "turretRotationCANid", "value" : 12},
+        {"varName" : "turretRotationCANid", "value" : 10},
         {"varName" : "tuneTurret", "value" : false},
 
-        {"varName" : "turretP", "value": 0},
+        {"varName" : "turretP", "value": 0.50},
         {"varName" : "turretI", "value": 0},
         {"varName" : "turretD", "value": 0},
 
-        {"varName" : "turretKs", "value": 0},
-        {"varName" : "turretKv", "value": 0},
-        {"varName" : "turretKa", "value": 0},
+        {"varName" : "turretKs", "value": 0.12},
+        {"varName" : "turretKv", "value": 2.7},
+        {"varName" : "turretKa", "value": 0.01},
 
-        {"varName" : "turretPositionFactor", "value" : 6.28319},
+        {"varName" : "turretPlanetaryRatio", "value" : 20},
+        {"varName" : "turretPinionTeeth", "value" : 12},
+        {"varName" : "turretGearTeeth", "value" : 68},
 
         {"varName" : "turretDeadzoneStart", "value": 6.28319},
         {"varName" : "turretHardLimit", "value" : 9.942478},
@@ -188,7 +206,7 @@
         {"varName" : "turretPositionZ", "value" : 0},
 
         {"varName" : "hoodEnabled", "value" : true},
-        {"varName" : "hoodAngleMotorCANid", "value" : 13},
+        {"varName" : "hoodAngleMotorCANid", "value" : 12},
         {"varName" : "tuneHood", "value" : true},
 
         {"varName" : "hoodkG", "value" : -0.1},
@@ -198,14 +216,13 @@
         {"varName" : "hoodkI", "value" : 0},
         {"varName" : "hoodkD", "value" : 0},
 
-        {"varName" : "hoodPlanetaryRatio", "value" : 0.04},
+        {"varName" : "hoodPlanetaryRatio", "value" : 20},
         {"varName" : "hoodPinionTeeth", "value" : 10},
         {"varName" : "hoodLanternTeeth", "value" : 128},
         {"varName" : "hoodMotorFreeSpeed", "value" : 5676},
         {"varName" : "hoodMaxAcceleration", "value" : 720},
-        {"varName" : "hoodMaxAngle", "value" : 40},
-        {"varName" : "hoodMinAngle", "value": 0},
-
+        {"varName" : "hoodMaxAngle", "value" : 0},
+        {"varName" : "hoodMinAngle", "value": -40},
         {"varName" : "chimneyEnabled", "value": false},
         {"varName" : "chimneyMotorCANid", "value": 20}
         
@@ -217,6 +234,8 @@
    ],
 
    "Climber" : [
+        {"varName" : "climberEnabled", "value" : false},
+        {"varName" : "tuneClimber", "value" : false},
         {"varName" : "motorCanId", "value" : 18}
    ],
 
