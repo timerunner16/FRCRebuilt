@@ -49,9 +49,9 @@ public class Shooter extends SubsystemBase{
     private TDNumber m_TDflywheelI;
     private TDNumber m_TDflywheelD;
 
-    private TDNumber m_TDflywheelKS;
-    private TDNumber m_TDflywheelKV;
-    private TDNumber m_TDflywheelKA;
+    private TDNumber m_TDflywheelKs;
+    private TDNumber m_TDflywheelKv;
+    private TDNumber m_TDflywheelKa;
 
 	private boolean m_tuneFlywheel;
 
@@ -100,15 +100,15 @@ public class Shooter extends SubsystemBase{
 
     private RelativeEncoder m_hoodEncoder;
     
-    private double m_hoodKG;
-    private double m_hoodKS;
-    private double m_hoodKV;
+    private double m_hoodKg;
+    private double m_hoodKs;
+    private double m_hoodKv;
     private double m_hoodP;
     private double m_hoodI;
     private double m_hoodD;
-    private TDNumber m_TDhoodKG;
-    private TDNumber m_TDhoodKS;
-    private TDNumber m_TDhoodKV;
+    private TDNumber m_TDhoodKg;
+    private TDNumber m_TDhoodKs;
+    private TDNumber m_TDhoodKv;
     private TDNumber m_TDhoodP;
     private TDNumber m_TDhoodI;
     private TDNumber m_TDhoodD;
@@ -173,14 +173,14 @@ public class Shooter extends SubsystemBase{
         m_flywheelI = m_TDflywheelI.get();
         m_flywheelD = m_TDflywheelD.get();
 
-        m_TDflywheelKS = new TDNumber(this, "Flywheel", "Ks");
-        m_TDflywheelKV = new TDNumber(this, "Flywheel", "Kv");
-        m_TDflywheelKA = new TDNumber(this, "Flywheel", "Ka");
-        m_TDflywheelKS.set(cfgDbl("flywheelKS"));
-        m_TDflywheelKV.set(cfgDbl("flywheelKV"));
-        m_TDflywheelKA.set(cfgDbl("flywheelKA"));
+        m_TDflywheelKs = new TDNumber(this, "Flywheel", "Ks");
+        m_TDflywheelKv = new TDNumber(this, "Flywheel", "Kv");
+        m_TDflywheelKa = new TDNumber(this, "Flywheel", "Ka");
+        m_TDflywheelKs.set(cfgDbl("flywheelKs"));
+        m_TDflywheelKv.set(cfgDbl("flywheelKv"));
+        m_TDflywheelKa.set(cfgDbl("flywheelKa"));
 
-		m_tuneFlywheel = cfgBool("tuneFlywheel");
+		m_tuneFlywheel = cfgBool("tuneFlywheelPID");
 
         m_flywheelLeftConfig = new SparkFlexConfig();
         m_flywheelLeftConfig.closedLoop.pid(m_flywheelP, m_flywheelI, m_flywheelD);
@@ -191,7 +191,7 @@ public class Shooter extends SubsystemBase{
         m_rightFlywheelMotor.configure(rightConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
         m_flywheelFF = new SimpleMotorFeedforward(
-            m_TDflywheelKV.get(), m_TDflywheelKS.get(), m_TDflywheelKA.get());
+            m_TDflywheelKv.get(), m_TDflywheelKs.get(), m_TDflywheelKa.get());
 
 		    m_turretTolerance = cfgDbl("turretTolerance");
 
@@ -256,23 +256,23 @@ public class Shooter extends SubsystemBase{
         m_tuneHood = cfgBool("tuneHood");
         m_hoodAngleMotor = new SparkMax(cfgInt("hoodAngleMotorCANid"), MotorType.kBrushless);
 
-        m_TDhoodKG = new TDNumber(this, "Hood", "kG");
-        m_TDhoodKS = new TDNumber(this, "Hood", "kS");
-        m_TDhoodKV = new TDNumber(this, "Hood", "kV");
+        m_TDhoodKg = new TDNumber(this, "Hood", "Kg");
+        m_TDhoodKs = new TDNumber(this, "Hood", "Ks");
+        m_TDhoodKv = new TDNumber(this, "Hood", "Kv");
         m_TDhoodP = new TDNumber(this, "Hood", "P");
         m_TDhoodI = new TDNumber(this, "Hood", "I");
         m_TDhoodD = new TDNumber(this, "Hood", "D");
 
-        m_TDhoodKG.set(cfgDbl("hoodkG"));
-        m_TDhoodKS.set(cfgDbl("hoodkS"));
-        m_TDhoodKV.set(cfgDbl("hoodkV"));
-        m_TDhoodP.set(cfgDbl("hoodkP"));
-        m_TDhoodI.set(cfgDbl("hoodkI"));
-        m_TDhoodD.set(cfgDbl("hoodkD"));
+        m_TDhoodKg.set(cfgDbl("hoodKg"));
+        m_TDhoodKs.set(cfgDbl("hoodKs"));
+        m_TDhoodKv.set(cfgDbl("hoodKv"));
+        m_TDhoodP.set(cfgDbl("hoodP"));
+        m_TDhoodI.set(cfgDbl("hoodI"));
+        m_TDhoodD.set(cfgDbl("hoodD"));
         
-        m_hoodKG = m_TDhoodKG.get();
-        m_hoodKS = m_TDhoodKS.get();
-        m_hoodKV = m_TDhoodKV.get();
+        m_hoodKg = m_TDhoodKg.get();
+        m_hoodKs = m_TDhoodKs.get();
+        m_hoodKv = m_TDhoodKv.get();
         m_hoodP = m_TDhoodP.get();
         m_hoodI = m_TDhoodI.get();
         m_hoodD = m_TDhoodD.get();
@@ -302,7 +302,7 @@ public class Shooter extends SubsystemBase{
         m_hoodProfile = new TrapezoidProfile(hoodConstraints);
         m_hoodState = new TrapezoidProfile.State(m_hoodEncoder.getPosition(), 0.0);
         m_hoodSetpoint = new TrapezoidProfile.State(m_hoodEncoder.getPosition(), 0.0);
-        m_hoodFF = new ElevatorFeedforward(m_hoodKS, m_hoodKG, m_hoodKV);
+        m_hoodFF = new ElevatorFeedforward(m_hoodKs, m_hoodKg, m_hoodKv);
 
         m_TDHoodMotorCurrent = new TDNumber(this, "Hood", "Motor Current");
         m_TDHoodPosition = new TDNumber(this, "Hood", "Position");
@@ -553,12 +553,12 @@ public class Shooter extends SubsystemBase{
                     m_hoodConfig.closedLoop.pid(m_hoodP, m_hoodI, m_hoodD);
                     m_hoodAngleMotor.configure(m_hoodConfig,  ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
             }
-            m_hoodKG = m_TDhoodKG.get();
-            m_hoodFF.setKg(m_hoodKG);
-            m_hoodKS = m_TDhoodKS.get();
-            m_hoodFF.setKs(m_hoodKS);
-            m_hoodKV = m_TDhoodKV.get();
-            m_hoodFF.setKv(m_hoodKV);
+            m_hoodKg = m_TDhoodKg.get();
+            m_hoodFF.setKg(m_hoodKg);
+            m_hoodKs = m_TDhoodKs.get();
+            m_hoodFF.setKs(m_hoodKs);
+            m_hoodKv = m_TDhoodKv.get();
+            m_hoodFF.setKv(m_hoodKv);
 
             m_hoodSetpoint = new TrapezoidProfile.State(m_TDHoodTargetPosition.get(), 0.0);
         }
@@ -616,6 +616,10 @@ public class Shooter extends SubsystemBase{
 
 					m_flywheelLeftMotor.configure(m_flywheelLeftConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 				}
+
+                m_flywheelFF.setKv(m_TDflywheelKv.get());
+                m_flywheelFF.setKa(m_TDflywheelKa.get());
+                m_flywheelFF.setKs(m_TDflywheelKs.get());
 			}
 
             double arbFF = m_flywheelFF.calculate(m_TDflywheelVelocity.get());

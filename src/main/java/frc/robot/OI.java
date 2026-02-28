@@ -13,6 +13,7 @@ import frc.robot.commands.intake.IntakeIn;
 import frc.robot.commands.intake.IntakeOut;
 import frc.robot.commands.shooter.ChimneyDown;
 import frc.robot.commands.shooter.ChimneyUp;
+import frc.robot.commands.shooter.ManualShooterControl;
 import frc.robot.commands.spindexer.SpindexerReverse;
 import frc.robot.commands.spindexer.SpindexerSpin;
 import frc.robot.subsystems.Drive;
@@ -107,6 +108,8 @@ public class OI {
 
 		SwitchIndicator operatorIndicator = new RumbleIndicator(m_operatorXboxController.getHID());
 		new TriggerBuilder<Submap>(m_operatorSubmap)
+			.whileTrue(m_operatorXboxController.a(), new ManualShooterControl())
+
 			.register();
     }
 
