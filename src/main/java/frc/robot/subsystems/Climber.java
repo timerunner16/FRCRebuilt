@@ -19,6 +19,8 @@ import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import frc.robot.Constants;
 import frc.robot.testingdashboard.SubsystemBase;
 import frc.robot.testingdashboard.TDNumber;
+import frc.robot.utils.sensing.SparkCurrentLimitDetector;
+import frc.robot.utils.sensing.SparkCurrentLimitDetector.HardLimitDirection;
 
 public class Climber extends SubsystemBase {
   /** Creates a new Climber. */
@@ -26,12 +28,13 @@ public class Climber extends SubsystemBase {
 
   private boolean m_climberEnabled;
 
-  private double m_maxInches = 20;
+  private double m_maxInches = 8;
 
-  private SparkBase m_climberLeftMotor;
-  private SparkBase m_climberRightMotor;
+  private SparkBase m_climberMotor;
 
-  private SparkBaseConfig m_climberLeftConfig;
+  private SparkBaseConfig m_climberConfig;
+
+  private SparkCurrentLimitDetector m_climberCurrentLimit;
 
   private boolean m_tuneClimber;
 
@@ -48,7 +51,7 @@ public class Climber extends SubsystemBase {
   private TDNumber m_TDclimberKa;
 
   private TDNumber m_TDclimberTargetPosition;
-  private TDNumber m_TDclimberPosition;
+  private TDNumber m_TDclimberMeasuredPosition;
   private TDNumber m_TDclimberProfilePosition;
   private TDNumber m_TDclimberCurrentOutput;
 
@@ -62,10 +65,8 @@ public class Climber extends SubsystemBase {
     m_climberEnabled = cfgBool("climberEnabled");
 
     if (m_climberEnabled) {
-      var leftController = config().getMotorController("climberRight");
-      var rightController = config().getMotorController("climberLeft");
-      m_climberLeftMotor = leftController.m_controller;
-      m_climberRightMotor = rightController.m_controller;
+      var climberMotorConfig = config().getMotorController("climber");
+      m_climberMotor = climberMotorConfig.m_controller;
 
       m_tuneClimber = cfgBool("tuneClimber");
 
@@ -88,16 +89,15 @@ public class Climber extends SubsystemBase {
       m_TDclimberKv.set(cfgDbl("climberKv"));
       m_TDclimberKa.set(cfgDbl("climberKa"));
 
-      m_climberLeftConfig = leftController.m_config;
-      m_climberLeftConfig.closedLoop.pid(m_climberP, m_climberI, m_climberD);
-      m_climberLeftConfig.closedLoop.feedbackSensor(FeedbackSensor.kPrimaryEncoder);
-      m_climberLeftConfig.closedLoop.positionWrappingEnabled(false);
-      m_climberLeftConfig.encoder.positionConversionFactor(cfgDbl("climberRatio") * m_maxInches);
-      m_climberLeftMotor.configure(m_climberLeftConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+      m_climberConfig = climberMotorConfig.m_config;
+      m_climberConfig.inverted(true);
+      m_climberConfig.closedLoop.pid(m_climberP, m_climberI, m_climberD);
+      m_climberConfig.closedLoop.feedbackSensor(FeedbackSensor.kPrimaryEncoder);
+      m_climberConfig.closedLoop.positionWrappingEnabled(false);
+      m_climberConfig.encoder.positionConversionFactor(cfgDbl("climberRatio"));
+      m_climberMotor.configure(m_climberConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
-      SparkBaseConfig rightConfig = rightController.m_config;
-      rightConfig.follow(m_climberLeftMotor, true);
-      m_climberRightMotor.configure(rightConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+      m_climberCurrentLimit = new SparkCurrentLimitDetector(m_climberMotor, cfgDbl("climberCurrentLimit"), cfgDbl("climberZeroVelocityTolerance"));
 
       m_climberFeedForwardController = new ElevatorFeedforward(
           m_TDclimberKs.get(),
@@ -108,15 +108,15 @@ public class Climber extends SubsystemBase {
       m_climberProfile = new TrapezoidProfile(new TrapezoidProfile.Constraints(
           cfgDbl("climberMaxVelocity"), cfgDbl("climberMaxAcceleration")));
 
-      m_climberSetpoint = new TrapezoidProfile.State(m_climberLeftMotor.getEncoder().getPosition(), 0.0);
-      m_climberState = new TrapezoidProfile.State(m_climberLeftMotor.getEncoder().getPosition(), 0.0);
+      m_climberSetpoint = new TrapezoidProfile.State(m_climberMotor.getEncoder().getPosition(), 0.0);
+      m_climberState = new TrapezoidProfile.State(m_climberMotor.getEncoder().getPosition(), 0.0);
 
       m_TDclimberTargetPosition = new TDNumber(this, "Position", "Target Position");
 
       m_TDclimberProfilePosition = new TDNumber(this, "Position", "Profile Position");
       m_TDclimberProfilePosition.set(m_climberState.position);
 
-      m_TDclimberPosition = new TDNumber(this, "Position", "Measured Position");
+      m_TDclimberMeasuredPosition = new TDNumber(this, "Position", "Measured Position");
 
       m_TDclimberCurrentOutput = new TDNumber(this, "Current", "Measured Output");
     }
@@ -146,7 +146,7 @@ public class Climber extends SubsystemBase {
   }
 
   public double getClimberAngle() {
-    return m_climberLeftMotor.getEncoder().getPosition();
+    return m_climberMotor.getEncoder().getPosition();
   }
 
   public boolean isClimberOnRung() {
@@ -173,8 +173,8 @@ public class Climber extends SubsystemBase {
         m_climberP = m_TDclimberP.get();
         m_climberI = m_TDclimberI.get();
         m_climberD = m_TDclimberD.get();
-        m_climberLeftConfig.closedLoop.pid(m_climberP, m_climberI, m_climberD);
-        m_climberLeftMotor.configure(m_climberLeftConfig, ResetMode.kResetSafeParameters,
+        m_climberConfig.closedLoop.pid(m_climberP, m_climberI, m_climberD);
+        m_climberMotor.configure(m_climberConfig, ResetMode.kResetSafeParameters,
             PersistMode.kPersistParameters);
       }
       m_climberFeedForwardController.setKg(m_TDclimberKg.get());
@@ -183,16 +183,27 @@ public class Climber extends SubsystemBase {
       m_climberFeedForwardController.setKa(m_TDclimberKa.get());
     }
 
+    HardLimitDirection hardLimit = m_climberCurrentLimit.check();
+    if (hardLimit == HardLimitDirection.kForward && m_climberMotor.getEncoder().getVelocity() > 0) {
+      m_climberMotor.getEncoder().setPosition(m_maxInches);
+      m_TDclimberTargetPosition.set(m_climberMotor.getEncoder().getPosition());
+    } else if (hardLimit == HardLimitDirection.kReverse && m_climberMotor.getEncoder().getVelocity() < 0) {
+      m_climberMotor.getEncoder().setPosition(0);
+      m_TDclimberTargetPosition.set(m_climberMotor.getEncoder().getPosition());
+    }
+ 
     m_climberSetpoint = new TrapezoidProfile.State(clampTargetAngle(m_TDclimberTargetPosition.get()), 0.0);
     m_climberState = m_climberProfile.calculate(Constants.schedulerPeriodTime, m_climberState, m_climberSetpoint);
 
     double climberFeedForward = m_climberFeedForwardController.calculate(m_climberState.velocity);
-    m_climberLeftMotor.getClosedLoopController().setSetpoint(
+    m_climberMotor.getClosedLoopController().setSetpoint(
         m_climberState.position, ControlType.kPosition,
         ClosedLoopSlot.kSlot0, climberFeedForward, ArbFFUnits.kVoltage);
 
-    m_TDclimberCurrentOutput.set(m_climberLeftMotor.getOutputCurrent());
-    m_TDclimberPosition.set(m_climberLeftMotor.getEncoder().getPosition());
+    m_TDclimberCurrentOutput.set(m_climberMotor.getOutputCurrent());
+    m_TDclimberMeasuredPosition.set(m_climberMotor.getEncoder().getPosition());
     m_TDclimberProfilePosition.set(m_climberState.position);
+
+    super.periodic();
   }
 }

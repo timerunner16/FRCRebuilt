@@ -661,17 +661,18 @@ public class Shooter extends SubsystemBase {
         TurretState state = m_tuneTurret ? TurretState.ROBOT_RELATIVE
                 : (FieldUtils.getInstance().inAllianceZone(m_Drive.getPose(), alliance) ? TurretState.SHOOTING
                         : TurretState.FERRYING);
-        double controlledAngle = angleToTarget(m_TDturretTargetAngle.get(), TurretState.FERRYING);// state);
+        double controlledAngle = angleToTarget(m_TDturretTargetAngle.get(), state);
 
         HardLimitDirection hardLimit = m_turretCurrentLimit.check();
         if (hardLimit == HardLimitDirection.kForward) {
             m_turretMotor.getEncoder().setPosition(m_turretForwardHardLimit);
+            m_TDturretSpeed.set(0);
         } else if (hardLimit == HardLimitDirection.kReverse) {
             m_turretMotor.getEncoder().setPosition(m_turretReverseHardLimit);
+            m_TDturretSpeed.set(0);
         }
 
-        if (controlledAngle > m_turretForwardHardLimit) controlledAngle = m_turretForwardHardLimit;
-        if (controlledAngle < m_turretReverseHardLimit) controlledAngle = m_turretReverseHardLimit;
+        controlledAngle = MathUtil.clamp(controlledAngle, m_turretReverseHardLimit, m_turretForwardHardLimit);
 
         m_turretSetpoint = new TrapezoidProfile.State(controlledAngle, m_TDturretSpeed.get());
 

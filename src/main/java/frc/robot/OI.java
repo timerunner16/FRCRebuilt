@@ -19,6 +19,7 @@ import frc.robot.commands.shooter.ChimneyUp;
 import frc.robot.commands.shooter.ManualShooterControl;
 import frc.robot.commands.spindexer.SpindexerReverse;
 import frc.robot.commands.spindexer.SpindexerSpin;
+import frc.robot.subsystems.Climber;
 import frc.robot.subsystems.Drive;
 import frc.robot.subsystems.Shooter;
 import frc.robot.utils.TriggerBuilder;
@@ -44,7 +45,7 @@ public class OI {
 	}
 
 	private final Referrable<Submap> m_operatorSubmap = new Referrable<Submap>(Submap.AUTO);
-	private final Referrable<Submap> m_driverSubmap = new Referrable<Submap>(Submap.AUTO);
+	private final Referrable<Submap> m_driverSubmap = new Referrable<Submap>(Submap.MANUAL);
 
     public static OI getInstance() {
         if (m_OI == null) m_OI = new OI();
@@ -91,6 +92,27 @@ public class OI {
 
 				.whileTrue(m_driverXboxController.b(), new ChimneyUp())
 				*/
+
+				.whileTrue(m_driverXboxController.leftBumper(), new IntakeIn())
+
+				.whileTrue(m_driverXboxController.rightBumper(), Commands.parallel(
+					new SpindexerSpin(),
+					new ChimneyUp(),
+					Commands.startEnd(
+						()->{Shooter.getInstance().setHoodTarget(-40);},
+						()->{Shooter.getInstance().setHoodTarget(0);}
+					),
+					Commands.startEnd(
+						()->{Shooter.getInstance().setFlywheelTarget(2000);},
+						()->{Shooter.getInstance().setFlywheelTarget(0);}
+					)
+				))
+
+				.whileTrue(m_driverXboxController.povUp(), Commands.startEnd(
+					()->{Climber.getInstance().setClimberTargetAngle(5);},
+					()->{Climber.getInstance().setClimberTargetAngle(0);}
+				))
+				//.onTrue(m_driverXboxController.povUp(), Commands.print("you're not crazy yet"))
 				
 				.switchSubmap(driverIndicator, m_driverXboxController.start(), Submap.AUTO)
 			.endSubmap()

@@ -422,7 +422,26 @@
 	],
 
 	"Climber" : [
-		{"varName" : "climberEnabled", "value" : false}
+		{"varName" : "climberEnabled", "value" : true},
+        {"varName" : "climberRatio", "value" : 1},
+
+        {"varName" : "tuneClimber", "value" : true},
+
+        {"varName" : "climberP", "value" : 0},
+        {"varName" : "climberI", "value" : 0},
+        {"varName" : "climberD", "value" : 0},
+        {"varName" : "climberKg", "value" : 0},
+        {"varName" : "climberKs", "value" : 0},
+        {"varName" : "climberKv", "value" : 0},
+        {"varName" : "climberKa", "value" : 0},
+
+        {"varName" : "climberCurrentLimit", "value" : 10},
+        {"varName" : "climberZeroVelocityTolerance", "value" : 0.05},
+        {"varName" : "climberMaxVelocity", "value" : 1},
+        {"varName" : "climberMaxAcceleration", "value" : 1},
+
+        {"varName" : "climberMinPosition", "value" : 0},
+        {"varName" : "climberMaxPosition", "value" : 39.75}
 	],
 
 	"visionConfig" : [
