@@ -5,6 +5,9 @@
 package frc.robot.subsystems;
 
 import com.revrobotics.spark.SparkBase.ControlType;
+
+import java.math.MathContext;
+
 import com.revrobotics.PersistMode;
 import com.revrobotics.ResetMode;
 import com.revrobotics.spark.SparkClosedLoopController.ArbFFUnits;
@@ -19,6 +22,8 @@ import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import frc.robot.Constants;
 import frc.robot.testingdashboard.SubsystemBase;
 import frc.robot.testingdashboard.TDNumber;
+import frc.robot.utils.sensing.SparkCurrentLimitDetector;
+import frc.robot.utils.sensing.SparkCurrentLimitDetector.HardLimitDirection;
 
 public class Climber extends SubsystemBase {
   /** Creates a new Climber. */
@@ -46,6 +51,8 @@ public class Climber extends SubsystemBase {
   private TDNumber m_TDclimberKg;
   private TDNumber m_TDclimberKv;
   private TDNumber m_TDclimberKa;
+
+  private SparkCurrentLimitDetector m_climberLimiter;
 
   private TDNumber m_TDclimberTargetPosition;
   private TDNumber m_TDclimberPosition;
@@ -185,6 +192,38 @@ public class Climber extends SubsystemBase {
 
     m_climberSetpoint = new TrapezoidProfile.State(clampTargetAngle(m_TDclimberTargetPosition.get()), 0.0);
     m_climberState = m_climberProfile.calculate(Constants.schedulerPeriodTime, m_climberState, m_climberSetpoint);
+
+    HardLimitDirection limit = m_climberLimiter.check();
+    double climberPosition = m_climberLeftMotor.getEncoder().getPosition();
+    if (limit == HardLimitDirection.kFree) {
+      double climberFeedForward = m_climberFeedForwardController.calculate(m_climberState.velocity);
+      m_climberLeftMotor.getClosedLoopController().setSetpoint(m_climberState.position, ControlType.kPosition, ClosedLoopSlot.kSlot0,
+          climberFeedForward);
+    } else if (limit == HardLimitDirection.kForward) {
+      if (m_climberLeftMotor.getAppliedOutput() > 0) {
+        m_climberLeftMotor.set(0);
+      }
+      if (!MathUtil.isNear(Constants.ClimberConstants.kClimberUpperLimitInches, climberPosition,
+            Constants.ClimberConstants.kClimberToleranceInches)) {
+        m_climberLeftMotor.getEncoder().setPosition(Constants.ClimberConstants.kClimberUpperLimitInches);
+      }
+      if (m_climberSetpoint.position > climberPosition) {
+        m_climberState = new TrapezoidProfile.State(Constants.ClimberConstants.kClimberUpperLimitInches, 0.0);
+        m_climberSetpoint = new TrapezoidProfile.State(Constants.ClimberConstants.kClimberUpperLimitInches, 0.0);
+      }
+    } else if (limit == HardLimitDirection.kReverse) {
+      if (m_climberLeftMotor.getAppliedOutput() < 0) {
+        m_climberLeftMotor.set(0);
+      }
+      if (!MathUtil.isNear(Constants.ClimberConstants.kClimberLowerLimitInches, climberPosition,
+            Constants.ClimberConstants.kClimberToleranceInches)) {
+        m_climberLeftMotor.getEncoder().setPosition(Constants.ClimberConstants.kClimberLowerLimitInches);
+      }
+      if (m_climberSetpoint.position<climberPosition) {
+        m_climberState = new TrapezoidProfile.State(Constants.ClimberConstants.kClimberLowerLimitInches, 0.0);
+        m_climberSetpoint = new TrapezoidProfile.State(Constants.ClimberConstants.kClimberLowerLimitInches, 0.0);
+      }
+    }
 
     double climberFeedForward = m_climberFeedForwardController.calculate(m_climberState.velocity);
     m_climberLeftMotor.getClosedLoopController().setSetpoint(
