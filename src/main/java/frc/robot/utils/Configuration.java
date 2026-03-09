@@ -4,9 +4,8 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.util.List;
 import java.util.Map;
+import java.util.Scanner;
 import java.util.HashMap;
-
-import org.photonvision.PhotonPoseEstimator.PoseStrategy;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -21,6 +20,7 @@ import com.revrobotics.spark.config.SparkBaseConfig;
 import com.revrobotics.spark.config.SparkFlexConfig;
 import com.revrobotics.spark.config.SparkMaxConfig;
 
+import frc.robot.Robot;
 import frc.robot.utils.vision.VisionConfig;
 
 class MotorConfig
@@ -81,12 +81,19 @@ public class Configuration {
         System.out.println("$HOME is " + home);
       }
       String myIdentity = "";
-      File f = new File(home + "/identity");
-      if (f.exists())
-      {
-        java.io.FileReader r = new java.io.FileReader(f);
-        java.io.BufferedReader b = new BufferedReader(r);
-        myIdentity = b.readLine();
+      if (Robot.isSimulation()) {
+        Scanner scanner = new Scanner(System.in);
+        System.out.println("What identity do I have?");
+        myIdentity = scanner.nextLine();
+        scanner.close();
+      } else {
+        File f = new File(home + "/identity");
+        if (f.exists())
+        {
+          java.io.FileReader r = new java.io.FileReader(f);
+          java.io.BufferedReader b = new BufferedReader(r);
+          myIdentity = b.readLine();
+        }
       }
       if (myIdentity.isEmpty()) myIdentity = "default";
       System.out.println("Identity is " + myIdentity);
@@ -178,8 +185,7 @@ public class Configuration {
     if (m_VisionConfigs != null) return m_VisionConfigs;
     if (m_config == null) return null;
     JsonNode visionConfig = m_config.findValue("visionConfig");
-    if (visionConfig != null) 
-    {
+    if (visionConfig != null) {
       System.out.println("got vision " + visionConfig.toString());
     }
 
@@ -202,8 +208,7 @@ public class Configuration {
     try {
       ObjectMapper om = new ObjectMapper();
       List<RobotMapConfigValue> subsystemValues = om.readValue(subsystemConfig.toString(), new TypeReference<List<RobotMapConfigValue>>(){});
-      for (int i = 0; i < subsystemValues.size(); i++)
-      {
+      for (int i = 0; i < subsystemValues.size(); i++) {
         RobotMapConfigValue value = subsystemValues.get(i);
         values.put(value.varName, value.value);
       }
@@ -216,24 +221,28 @@ public class Configuration {
   public double getDouble(String subsystem, String name)
   {
     Map<String, Object> values = m_values.get(subsystem);
-    if (values == null)
-    {
+    if (values == null) {
       loadSubsystem(subsystem);
       values = m_values.get(subsystem);
     }
-    if (values == null || values.get(name) == null) return 0.0;
+    if (values == null || values.get(name) == null) {
+       System.err.println("Unconfigured double " + subsystem + "/" + name);
+       return 0.0;
+    }
     return Double.valueOf(values.get(name).toString()).doubleValue();
   }
 
   public int getInt(String subsystem, String name)
   {
     Map<String, Object> values = m_values.get(subsystem);
-    if (values == null)
-    {
+    if (values == null) {
       loadSubsystem(subsystem);
       values = m_values.get(subsystem);
     }
-    if (values == null || values.get(name) == null) return 0;
+    if (values == null || values.get(name) == null) {
+      System.err.println("Unconfigured integer " + subsystem + "/" + name);
+      return 0;
+    }
     return Integer.valueOf(values.get(name).toString()).intValue();
   }
 
@@ -245,7 +254,11 @@ public class Configuration {
       loadSubsystem(subsystem);
       values = m_values.get(subsystem);
     }
-    if (values == null || values.get(name) == null) return false;
+    if (values == null || values.get(name) == null)
+    {
+      System.err.println("Unconfigured boolean " + subsystem + "/" + name);
+      return false;
+    }
     return Boolean.valueOf(values.get(name).toString()).booleanValue();
   }
 }

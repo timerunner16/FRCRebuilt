@@ -17,7 +17,7 @@ import frc.robot.subsystems.Drive;
 // import frc.robot.subsystems.Lights.LightSection;
 import frc.robot.testingdashboard.Command;
 import frc.robot.testingdashboard.TDNumber;
-import frc.robot.utils.TargetPose;
+import frc.robot.utils.drive.TargetPose;
 
 public class DriveToPose extends Command {
   private Drive m_drive;

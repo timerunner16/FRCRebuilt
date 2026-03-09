@@ -44,8 +44,9 @@ import frc.robot.Constants.DriveConstants;
 import frc.robot.Constants.SwerveModuleConstants;
 import frc.robot.Constants;
 import frc.robot.testingdashboard.*;
-import frc.robot.utils.SwerveUtils;
 import frc.robot.utils.FieldUtils;
+import frc.robot.utils.drive.MAXSwerveModule;
+import frc.robot.utils.drive.SwerveUtils;
 
 public class Drive extends SubsystemBase {
   private static Drive m_Drive;

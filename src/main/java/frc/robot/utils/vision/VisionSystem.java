@@ -33,10 +33,11 @@ public class VisionSystem {
     private Optional<VisionEstimationResult> m_latestResult;
     private PoseStrategy m_multiStrategy;
     private PoseStrategy m_singleStrategy;
+    private boolean m_includeInPoseEstimates;
 
     public VisionSystem(VisionConfig config) {
         m_camera = new PhotonCamera(config.cameraName);
-        m_photonEstimator = new PhotonPoseEstimator(VisionConstants.kTagLayout, new Transform3d(config.cameraPositionT, config.cameraPositionR));
+        m_photonEstimator = new PhotonPoseEstimator(VisionConstants.kTagLayout, new Transform3d(config.cameraTranslation, config.cameraRotation));
         if((config.primaryStrategy == PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR) ||
             (config.primaryStrategy == PoseStrategy.MULTI_TAG_PNP_ON_RIO)) {
             m_multiStrategy = config.primaryStrategy;
@@ -45,6 +46,7 @@ public class VisionSystem {
             m_singleStrategy = config.primaryStrategy;
         }
         m_latestResult = Optional.empty();
+        m_includeInPoseEstimates = config.includeInPoseEstimates;
     }
 
     public String getName() { return m_camera.getName(); }
@@ -109,6 +111,8 @@ public class VisionSystem {
             }
 
             if(visionEst.isPresent()) {
+                boolean d = getName().equals("Arducam_OV9782_D");
+
                 EstimatedRobotPose est = visionEst.get();
                 double ambiguity = getResultAmbiguity(est, latestResult);
                 double latestTimestamp = latestResult.getTimestampSeconds();
@@ -121,6 +125,9 @@ public class VisionSystem {
                 }
 
                 if(valid) {
+                    if (d) {
+                        System.out.println("i can seeee");
+                    }
                     Matrix<N3,N1> stdDevs = getEstimationStdDevs(est.estimatedPose.toPose2d());
                     result = Optional.of(new VisionEstimationResult(est.estimatedPose, latestTimestamp, ambiguity, stdDevs, latestResult));
                 }
@@ -194,19 +201,24 @@ public class VisionSystem {
            estPose.estimatedPose.getX() > VisionConstants.kTagLayout.getFieldLength() ||
            estPose.estimatedPose.getY() < 0 ||
            estPose.estimatedPose.getY() > VisionConstants.kTagLayout.getFieldWidth()) {
+            System.out.println("pose oof");
             return false;
         }
         //Reject if robot is too too far from ground level
         if(Math.abs(estPose.estimatedPose.getZ()) > VisionConstants.kMaxZError) {
+            System.out.println("pose too high");
             return false;
         }
         //Reject if robot is tilted too much
         if(Math.abs(estPose.estimatedPose.getRotation().getX()) > VisionConstants.kMaxRollError ||
            Math.abs(estPose.estimatedPose.getRotation().getY()) > VisionConstants.kMaxPitchError) {
+            System.out.println("pose too tilted");
             return false;
         }
 
         return true;
     }
+
+    public boolean shouldIncludeInPoseEstimates() { return m_includeInPoseEstimates; }
 
 }

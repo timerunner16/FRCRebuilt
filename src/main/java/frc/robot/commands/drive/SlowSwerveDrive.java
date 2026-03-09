@@ -11,7 +11,7 @@ import frc.robot.subsystems.Drive;
 import frc.robot.testingdashboard.Command;
 import frc.robot.testingdashboard.TDNumber;
 import frc.robot.testingdashboard.TDSendable;
-import frc.robot.utils.SwerveDriveInputs;
+import frc.robot.utils.drive.SwerveDriveInputs;
 
 public class SlowSwerveDrive extends Command {
   private SwerveDriveInputs m_DriveInputs;

@@ -2,7 +2,7 @@
 // Open Source Software; you can modify and/or share it under the terms of
 // the WPILib BSD license file in the root directory of this project.
 
-package frc.robot.subsystems;
+package frc.robot.utils.drive;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
@@ -106,6 +106,8 @@ public class MAXSwerveModule {
         .pid(SwerveModuleConstants.kDrivingP, SwerveModuleConstants.kDrivingI, SwerveModuleConstants.kDrivingD)
         .outputRange(SwerveModuleConstants.kDrivingMinOutput, SwerveModuleConstants.kDrivingMaxOutput)
         .feedForward.kV(SwerveModuleConstants.kDrivingVelocityFF);
+/*                   kA(SwerveModuleConstants.kDrivingA) 
+                     kS(SwerveModuleConstants.kDrivingS); */
 
     m_drivingSpark.configure(m_drivingConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
     m_drivingEncoder = m_drivingSpark.getEncoder();
