@@ -476,7 +476,7 @@
             "name": "FrontRightCamera",
             "translation": {
                 "x": 0.2814828,
-                "y": 0.2814828,
+                "y":-0.2814828,
                 "z": 0.2055876
             },
             "angles": {

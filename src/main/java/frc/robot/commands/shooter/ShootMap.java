@@ -126,7 +126,7 @@ public class ShootMap extends Command {
 
     @Override
     public void initialize() {}
-    
+
     @Override
     public void execute() {
         Pose2d pose = m_Drive.getPose();
@@ -147,10 +147,9 @@ public class ShootMap extends Command {
             double intended = setpoint.pose.getRotation().getRadians();
             double actual = pose.getRotation().getRadians();
             
-            //double error = intended - actual;
-            //error = MathUtil.clamp(error, Math.toRadians(-30), Math.toRadians(30));
-            double error = 0;
-            turretAngle = setpoint.turret - error;
+            double error = intended - actual;
+            error = MathUtil.clamp(error, Math.toRadians(-30), Math.toRadians(30));
+            turretAngle = setpoint.turret + error;
         } else {
             Rotation2d angle;
             if (m_target == Target.SHOOT_HUB) {
