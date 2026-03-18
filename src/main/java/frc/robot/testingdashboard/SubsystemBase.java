@@ -7,15 +7,18 @@ package frc.robot.testingdashboard;
 import java.util.ArrayList;
 
 import frc.robot.utils.Configuration;
+import frc.robot.utils.structlogging.StructLogger;
 
 public class SubsystemBase extends edu.wpi.first.wpilibj2.command.SubsystemBase {
 
   ArrayList<TDValue> m_values;
+  ArrayList<StructLogger> m_structLoggers;
   TDBoolean m_enabled;
   /** Creates a new Subsystem and registers it with the TestingDashboard. */
   public SubsystemBase(String name)
   {
     m_values = new ArrayList<TDValue>();
+    m_structLoggers = new ArrayList<StructLogger>();
     setName(name);
     TestingDashboard.getInstance().registerTab(name);
     // must do this after the subsystem is registered
@@ -31,11 +34,18 @@ public class SubsystemBase extends edu.wpi.first.wpilibj2.command.SubsystemBase 
     {
       value.post();
     }
+
+    for (StructLogger structLogger : m_structLoggers) {
+      structLogger.post();
+    }
   }
 
-  public void registerValue(TDValue value)
-  {
+  public void registerValue(TDValue value) {
     m_values.add(value);
+  }
+
+  public void registerStructLogger(StructLogger structLogger) {
+    m_structLoggers.add(structLogger);
   }
 
   public Configuration config()

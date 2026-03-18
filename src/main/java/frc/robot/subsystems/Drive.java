@@ -32,6 +32,7 @@ import edu.wpi.first.wpilibj.ADIS16470_IMU;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.ADIS16470_IMU.IMUAxis;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.sysid.SysIdRoutineLog;
@@ -47,6 +48,7 @@ import frc.robot.testingdashboard.*;
 import frc.robot.utils.FieldUtils;
 import frc.robot.utils.drive.MAXSwerveModule;
 import frc.robot.utils.drive.SwerveUtils;
+import frc.robot.utils.structlogging.StructLogger;
 
 public class Drive extends SubsystemBase {
   private static Drive m_Drive;
@@ -149,6 +151,8 @@ public class Drive extends SubsystemBase {
   TDNumber m_TRightBackSetpoint;
   TDNumber m_TLeftBackSetpoint;
 
+  private final StructLogger m_poseLogger;
+
   /** Creates a new Drive. */
   private Drive() {
     super("Drive");
@@ -235,6 +239,8 @@ public class Drive extends SubsystemBase {
     PathPlannerLogging.setLogActivePathCallback((poses)->{
       m_field.getObject("Auto Active Path").setPoses(poses);
     });
+
+    m_poseLogger = StructLogger.pose2dLogger(this, "DrivePose", null);
   }
 
   public static Drive getInstance() {
@@ -249,7 +255,7 @@ public class Drive extends SubsystemBase {
   public void periodic() {
     // This method will be called once per scheduler run
     // Update the odometry in the periodic block
-    m_DrivePoseEstimator.update(
+    Pose2d updated = m_DrivePoseEstimator.update(
       Rotation2d.fromDegrees(m_gyro.getAngle(IMUAxis.kZ)), 
       new SwerveModulePosition[] {
         m_FrontLeft.getPosition(),
@@ -257,6 +263,8 @@ public class Drive extends SubsystemBase {
         m_BackLeft.getPosition(),
         m_BackRight.getPosition()
       });
+    m_poseLogger.setStruct(updated);
+
     updateTD();
     super.periodic();
   }
@@ -275,11 +283,12 @@ public class Drive extends SubsystemBase {
         lastPose.getTranslation().plus(translation), 
         lastPose.getRotation().plus(rot));
       resetOdometry(newPose);
-                
     }
 
     m_driveTime = now;
+    m_poseLogger.setStruct(getPose());
 
+    super.periodic();
   }
   /**
    * Returns the currently-estimated pose of the robot.
@@ -466,7 +475,8 @@ public class Drive extends SubsystemBase {
 
   //Zeros the heading of the robot
   public void zeroHeading() {
-    m_gyro.reset();
+    boolean blue = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue;
+    m_DrivePoseEstimator.resetRotation(blue ? Rotation2d.kZero : Rotation2d.k180deg);
   }
 
   /*

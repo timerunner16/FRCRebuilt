@@ -14,22 +14,25 @@ import frc.robot.RobotMap;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.struct.Pose3dStruct;
+import edu.wpi.first.util.datalog.DataLog;
+import edu.wpi.first.util.datalog.DataLogBackgroundWriter;
+import edu.wpi.first.wpilibj.DataLogManager;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import frc.robot.testingdashboard.SubsystemBase;
 import frc.robot.testingdashboard.TDBoolean;
 import frc.robot.testingdashboard.TDNumber;
 import frc.robot.testingdashboard.TDSendable;
 import frc.robot.utils.Configuration;
-import frc.robot.utils.structlogging.Pose3dPublisher;
+import frc.robot.utils.structlogging.StructLogger;
 import frc.robot.utils.vision.VisionConfig;
 import frc.robot.utils.vision.VisionEstimationResult;
 import frc.robot.utils.vision.VisionSystem;
 
 public class Vision extends SubsystemBase {
-
   private static Vision m_vision;
   private HashMap<String, VisionSystem> m_visionSystems;
-  private HashMap<String, Pose3dPublisher> m_posePublishers;
+  private HashMap<String, StructLogger> m_poseLoggers;
 
   private TDNumber m_estX;
   private TDNumber m_estY;
@@ -41,14 +44,17 @@ public class Vision extends SubsystemBase {
   private Vision() {
     super("Vision");
     m_visionSystems = new HashMap<String, VisionSystem>();
-    m_posePublishers = new HashMap<String, Pose3dPublisher>();
+
+    m_poseLoggers = new HashMap<String, StructLogger>();
+
+    DataLogManager.start();
+
     List<VisionConfig> myConfig = Configuration.getInstance().getVisionConfigs();
-    if (myConfig != null)
-    {
+    if (myConfig != null) {
       for(VisionConfig config : myConfig) {
-         VisionSystem system = new VisionSystem(config);
-         m_visionSystems.put(config.cameraName, system);
-         m_posePublishers.put(config.cameraName, new Pose3dPublisher(config.cameraName, new Pose3dStruct()));
+        VisionSystem system = new VisionSystem(config);
+        m_visionSystems.put(config.cameraName, system);
+        m_poseLoggers.put(config.cameraName, StructLogger.pose3dLogger(this, config.cameraName, null));
       }
     }
     m_estX = new TDNumber(this, "Est Pose", "Est X");
@@ -59,7 +65,7 @@ public class Vision extends SubsystemBase {
     m_field.setRobotPose(-10, 0, Rotation2d.kZero);
     new TDSendable(this, "Field", "Vision Field", m_field);
 
-    m_poseUpdatesEnabled = new TDBoolean(this, "", "Pose Updates Enabled", true);
+    m_poseUpdatesEnabled = new TDBoolean(this, "", "Pose Updates Enabled", false);
   }
 
   public static Vision getInstance(){
@@ -93,34 +99,29 @@ public class Vision extends SubsystemBase {
   @Override
   public void periodic() {
     if (RobotMap.V_ENABLED) {
-      if (getPoseUpdatesEnabled()) {
-        Drive robotDrive = Drive.getInstance();
+      Drive robotDrive = Drive.getInstance();
 
-        for (var entry : m_visionSystems.entrySet()) {
-          var system = entry.getValue();
-          var newest = system.updateAndGetEstimatedPose();
-          newest.ifPresent(
-            est -> {
-              m_posePublishers.get(entry.getKey()).set(null);
-              Pose2d estPose = est.estimatedPose.toPose2d();
+      for (var entry : m_visionSystems.entrySet()) {
+        var system = entry.getValue();
+        var newest = system.updateAndGetEstimatedPose();
+        newest.ifPresent(
+          est -> {
+            m_poseLoggers.get(entry.getKey()).setStruct(est.estimatedPose);
+            Pose2d estPose = est.estimatedPose.toPose2d();
 
-              m_field.getObject(system.getName()).setPose(estPose);
+            m_field.getObject(system.getName()).setPose(estPose);
 
+            if (getPoseUpdatesEnabled() && system.shouldIncludeInPoseEstimates()) {
+              robotDrive.addVisionMeasurement(estPose, est.timestamp, est.stdDevs);
 
-              if (system.shouldIncludeInPoseEstimates()) {
-                robotDrive.addVisionMeasurement(estPose, est.timestamp, est.stdDevs);
-
-                m_estX.set(estPose.getX());
-                m_estY.set(estPose.getY());
-                m_estRot.set(estPose.getRotation().getDegrees());
-              }
+              m_estX.set(estPose.getX());
+              m_estY.set(estPose.getY());
+              m_estRot.set(estPose.getRotation().getDegrees());
             }
-          );
-        }
+          }
+        );
       }
-      for (Pose3dPublisher publisher : m_posePublishers.values()) {
-        publisher.post();
-      }
+      
       super.periodic();
     }
   }
