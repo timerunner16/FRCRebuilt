@@ -96,6 +96,19 @@ public class Vision extends SubsystemBase {
     return result;
   }
 
+  /**
+   * Gets a specific camera's VisionSystem by name
+   * @param cameraName
+   * @return the specified VisionSystem or null if no system with the given name exists
+   */
+  public VisionSystem getVisionSystemByName(String cameraName) {
+    if(!m_visionSystems.containsKey(cameraName)) {
+      return null;
+    }
+
+    return m_visionSystems.get(cameraName);
+  }
+
   @Override
   public void periodic() {
     if (RobotMap.V_ENABLED) {

@@ -29,17 +29,18 @@ import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
-import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import frc.robot.Constants;
 import frc.robot.testingdashboard.SubsystemBase;
 import frc.robot.testingdashboard.TDNumber;
+import frc.robot.testingdashboard.TDSendable;
 import frc.robot.utils.FieldUtils;
+import frc.robot.utils.SwerveTurretPoseEstimator3d;
 import frc.robot.utils.sensing.SparkCurrentLimitDetector;
 import frc.robot.utils.sensing.SparkCurrentLimitDetector.HardLimitDirection;
 import frc.robot.utils.vision.VisionEstimationResult;
@@ -117,9 +118,12 @@ public class Shooter extends SubsystemBase {
     private TDNumber m_TDturretSpeed;
 
     private TDNumber m_TDturretMeasuredPosition;
+    private TDNumber m_TDturretMeasuredVelocity;
     private TDNumber m_TDturretProfilePosition;
     private TDNumber m_TDturretMeasuredCurrent;
 
+    SwerveTurretPoseEstimator3d m_turretPoseEstimator;
+    Field2d m_turretPoseField;
     private Pose3d m_turretPose;
     private boolean m_turretGotResult;
 
@@ -154,6 +158,7 @@ public class Shooter extends SubsystemBase {
     private TrapezoidProfile m_hoodProfile;
     private TrapezoidProfile.State m_hoodState;
     private TrapezoidProfile.State m_hoodSetpoint;
+    private double m_hoodTolerance;
 
     private SparkCurrentLimitDetector m_hoodLimiter;
 
@@ -163,6 +168,7 @@ public class Shooter extends SubsystemBase {
     private TDNumber m_TDhoodTargetPosition;
 
     private Drive m_Drive;
+    private Vision m_Vision;
 
     // Chimney
     private final boolean m_chimneyEnabled;
@@ -227,7 +233,8 @@ public class Shooter extends SubsystemBase {
 
         m_flywheelLeftConfig = flywheelLeftMotorConfig.m_config;
         m_flywheelLeftConfig.closedLoop.pid(m_flywheelP, m_flywheelI, m_flywheelD);
-        m_flywheelLeftConfig.encoder.velocityConversionFactor(cfgDbl("flywheelVelocityFactor"));
+        m_flywheelLeftConfig.encoder
+            .velocityConversionFactor(cfgDbl("flywheelVelocityFactor"));
 
         m_flywheelLeftMotor.configure(m_flywheelLeftConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
@@ -301,6 +308,7 @@ public class Shooter extends SubsystemBase {
         m_TDturretSpeed = new TDNumber(this, "Turret", "Turret Speed");
 
         m_TDturretMeasuredPosition = new TDNumber(this, "Turret", "Measured Position");
+        m_TDturretMeasuredVelocity = new TDNumber(this, "Turret", "Measured Velocity");
         m_TDturretMeasuredCurrent = new TDNumber(this, "Turret", "Measured Current");
         m_TDturretProfilePosition = new TDNumber(this, "Turret", "Profile Position");
 
@@ -321,6 +329,27 @@ public class Shooter extends SubsystemBase {
 
         m_turretRobotRelative = cfgBool("turretRobotRelative");
         m_turretControl = true;
+        m_Vision = Vision.getInstance();
+
+        var turretVision = m_Vision.getVisionSystemByName(Constants.ShooterConstants.kTurretCameraName);
+        if(turretVision != null) {
+            turretVision.setExpectedHeight(cfgDbl("turretPositionZ"));
+        } else {
+            System.out.println("WARNING: Turret Vision System does not exist, turret localization may not work");
+        }
+        
+
+        m_turretPoseEstimator = new SwerveTurretPoseEstimator3d(
+            Constants.DriveConstants.kinematics, 
+            new Rotation3d(0, 0, Math.toRadians(m_Drive.getGyroAngle())),
+            Rotation2d.k180deg,
+            new Rotation2d(m_turretMotor.getEncoder().getPosition()),
+            m_Drive.getModulePositions(), 
+            new Pose3d(),
+            new Transform3d(cfgDbl("turretPositionX"), cfgDbl("turretPositionY"), cfgDbl("turretPositionZ"), Rotation3d.kZero));
+
+        m_turretPoseField = new Field2d();
+        new TDSendable(this, "Field", "Turret Position", m_turretPoseField);
     }
 
     private void setupHood() {
@@ -382,6 +411,8 @@ public class Shooter extends SubsystemBase {
         m_TDHoodPosition = new TDNumber(this, "Hood", "Position");
         m_TDHoodProfilePosition = new TDNumber(this, "Hood", "Profile Position");
         m_TDhoodTargetPosition = new TDNumber(this, "Hood", "Hood Target Position");
+
+        m_hoodTolerance = cfgDbl("hoodTolerance");
     }
 
     private void setupChimney() {
@@ -462,9 +493,21 @@ public class Shooter extends SubsystemBase {
                 cfgDbl("flywheelTolerance"));
     }
 
+    public void resetTurretEstimatorPose(Pose3d newPose)
+    {
+        double angle = Math.toRadians(m_Drive.getGyroAngle());
+        m_turretPoseEstimator.resetPosition(
+            new Rotation3d(0,0,angle),
+            m_Drive.getModulePositions(),
+            newPose);
+    }
+
+    public void resetTurretEstimatorRotation(double gyroAngleDegs) {
+        m_turretPoseEstimator.resetRotation(new Rotation3d(0, 0, Math.toRadians(gyroAngleDegs)));
+    }
+
     public boolean hoodAtTarget() {
-        // TODO: implement hoodAtTarget
-        return false;
+        return MathUtil.isNear(m_TDhoodTargetPosition.get(), m_hoodMotor.getEncoder().getPosition(), m_hoodTolerance);
     }
 
     /**
@@ -472,11 +515,10 @@ public class Shooter extends SubsystemBase {
      * 
      * @param angle
      *            Input pitch in radians (0 = +X, pi/2 = +Z)
-     * @return Valid hood angle in radians
+     * @return Valid hood angle in degrees
      */
     public double pitchToHood(double angle) {
-        // TODO: implement pitch to hood angle conversion
-        return 0;
+        return 90 - angle;
     }
 
     /**
@@ -690,6 +732,7 @@ public class Shooter extends SubsystemBase {
 
     private void runTurret() {
         m_TDturretMeasuredPosition.set(m_turretMotor.getEncoder().getPosition());
+        m_TDturretMeasuredVelocity.set(m_turretMotor.getEncoder().getVelocity());
         m_TDturretMeasuredCurrent.set(m_turretMotor.getOutputCurrent());
         m_TDturretProfilePosition.set(m_turretState.position);
 
@@ -748,8 +791,15 @@ public class Shooter extends SubsystemBase {
                 ClosedLoopSlot.kSlot0,
                 turretFF);
 
+        m_turretPoseEstimator.update(
+            new Rotation3d(0, 0, 
+                (Math.toRadians(m_Drive.getGyroAngle()))),
+            new Rotation2d(m_turretMotor.getEncoder().getPosition()),
+            m_Drive.getModulePositions());
         Optional<VisionEstimationResult> result = Vision.getInstance().getLatestFromCamera("TurretCamera");
         if (result.isPresent()) {
+            m_turretPoseEstimator.addVisionMeasurement(result.get().estimatedPose, result.get().timestamp);
+
             VisionEstimationResult turretEstimation = result.get();
             
             if (!m_turretGotResult) m_turretPose = turretEstimation.estimatedPose;
@@ -776,6 +826,8 @@ public class Shooter extends SubsystemBase {
 
             m_turretGotResult = true;
         }
+
+        m_turretPoseField.setRobotPose(m_turretPoseEstimator.getEstimatedPosition().toPose2d());
     }
 
     private void runHood() {

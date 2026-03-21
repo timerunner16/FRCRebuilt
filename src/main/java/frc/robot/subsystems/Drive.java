@@ -16,6 +16,7 @@ import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -210,9 +211,10 @@ public class Drive extends SubsystemBase {
     
     ModuleConfig swerveModuleConfig = new ModuleConfig(SwerveModuleConstants.kWheelDiameterMeters/2, DriveConstants.kMaxSpeedMetersPerSecond, 
     AutoConstants.kPathFollowerWheelCoeficientFriction, neovortex, SwerveModuleConstants.kDrivingMotorCurrentLimit, 4);
+    Consumer<Pose2d> poseResetter = (pose) -> { this.resetOdometry(pose); Shooter.getInstance().resetTurretEstimatorPose(new Pose3d(pose));};
     AutoBuilder.configure(
       this::getPose, // Robot pose supplier
-      this::resetOdometry, // Method to reset odometry (will be called if your auto has a starting pose)
+      poseResetter, // Method to reset odometry (will be called if your auto has a starting pose)
       this::getMeasuredSpeeds, // ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
       this::drive, // Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds
       new PPHolonomicDriveController(AutoConstants.kPathFollowerTranslationPID, AutoConstants.kPathFollowerRotationPID),
@@ -340,14 +342,16 @@ public class Drive extends SubsystemBase {
    * @param pose The pose to which to set the odometry
    */
   public void resetOdometry(Pose2d pose) {
-    m_DrivePoseEstimator.resetPosition(Rotation2d.fromDegrees(m_gyro.getAngle(IMUAxis.kZ)), 
-    new SwerveModulePosition[] {
-      m_FrontLeft.getPosition(),
-      m_FrontRight.getPosition(),
-      m_BackLeft.getPosition(),
-      m_BackRight.getPosition()
-    }, 
-    pose);
+    m_DrivePoseEstimator.resetPosition(
+      Rotation2d.fromDegrees(m_gyro.getAngle(IMUAxis.kZ)), 
+      new SwerveModulePosition[] {
+        m_FrontLeft.getPosition(),
+        m_FrontRight.getPosition(),
+        m_BackLeft.getPosition(),
+        m_BackRight.getPosition()
+      }, 
+      pose
+    );
   }
  
   void driveSysid(Voltage in) {
