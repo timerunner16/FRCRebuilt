@@ -276,7 +276,9 @@ public class Shooter extends SubsystemBase {
         m_turretConfig.inverted(true);
         m_turretConfig.idleMode(IdleMode.kBrake);
         m_turretConfig.smartCurrentLimit(cfgInt("turretStallCurrentLimit"), cfgInt("turretFreeCurrentLimit"));
-        m_turretConfig.encoder.positionConversionFactor(Constants.ShooterConstants.kTurretPositionFactor);
+        m_turretConfig.encoder
+            .positionConversionFactor(Constants.ShooterConstants.kTurretPositionFactor)
+            .velocityConversionFactor(Constants.ShooterConstants.kTurretPositionFactor/60);
         m_turretConfig.closedLoop.pid(m_turretP, m_turretI, m_turretD);
         m_turretConfig.closedLoop.positionWrappingEnabled(false);
 
@@ -518,7 +520,9 @@ public class Shooter extends SubsystemBase {
      * @return Valid hood angle in degrees
      */
     public double pitchToHood(double angle) {
-        return 90 - angle;
+        double tranlatedAngle = angle - Math.PI;
+        double degs = Math.toDegrees(tranlatedAngle) + Constants.ShooterConstants.kHoodAngleOffset;
+        return MathUtil.clamp(degs, Constants.ShooterConstants.kHoodMinAngle, Constants.ShooterConstants.kHoodMaxAngle);
     }
 
     /**
@@ -600,10 +604,10 @@ public class Shooter extends SubsystemBase {
         double robotAngle = m_turretMotor.getEncoder().getPosition();
 
         Pose2d chassisPose = m_Drive.getPose();
-        Rotation2d chassisRotation = chassisPose.getRotation();
+        Rotation2d chassisRotation = chassisPose.getRotation().plus(Rotation2d.k180deg);
         double chassisAngle = chassisRotation.getRadians();
         // current target angle, robot oriented
-        double robotTargetAngle = targetAngle - chassisAngle;
+        double robotTargetAngle = MathUtil.angleModulus(targetAngle - chassisAngle);
 
         switch (state) {
             case SHOOTING: {
@@ -614,7 +618,7 @@ public class Shooter extends SubsystemBase {
                  * 
                  * can be trusted but will be unoptimized
                  */
-                double freeMotion = (robotTargetAngle + Math.PI) % (2 * Math.PI) - Math.PI - robotAngle;
+                double freeMotion = robotTargetAngle - robotAngle;
 
                 /*
                  * shortest possible movement to the target angle
@@ -637,7 +641,7 @@ public class Shooter extends SubsystemBase {
             }
             case FERRYING: {
                 // i wrote two paragraphs explaining why this single statement is cool
-                return (robotTargetAngle + Math.PI) % (2 * Math.PI) - Math.PI;
+                return robotTargetAngle;
             }
             case ROBOT_RELATIVE: {
                 return targetAngle;
@@ -702,7 +706,6 @@ public class Shooter extends SubsystemBase {
         }
         case CALIBRATE_FULL: {
             m_turretMotor.set(m_turretCalibratedForward ? -0.5 : 0.5);
-            System.out.println(m_turretCalibratedForward);
 
             HardLimitDirection hardLimit = m_turretCurrentLimit.check();
             if (hardLimit == HardLimitDirection.kForward) {
