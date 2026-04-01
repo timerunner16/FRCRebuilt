@@ -61,11 +61,11 @@ public class SlowSwerveDrive extends Command {
     else {
       m_operatorRotating = true;
     }
-/*  m_drive.drive(
-      -MathUtil.applyDeadband(m_DriveInputs.getX(), Constants.OIConstants.kDriveDeadband) * Constants.DriveConstants.kSlowDrive,
-      -MathUtil.applyDeadband(m_DriveInputs.getY(), Constants.OIConstants.kDriveDeadband) * Constants.DriveConstants.kSlowDrive,
-      rotationPower * Constants.DriveConstants.kSlowDrive,
-      true, false); */
+    m_drive.drive(
+        -MathUtil.applyDeadband(m_DriveInputs.getX(), Constants.OIConstants.kDriveDeadband) * Constants.DriveConstants.kSlowDrive,
+        -MathUtil.applyDeadband(m_DriveInputs.getY(), Constants.OIConstants.kDriveDeadband) * Constants.DriveConstants.kSlowDrive,
+        rotationPower * Constants.DriveConstants.kSlowDrive,
+        true, false); 
   }
 
   // Called once the command ends or is interrupted.

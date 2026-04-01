@@ -13,6 +13,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import frc.robot.commands.drive.SlowSwerveDrive;
 import frc.robot.commands.drive.SwerveDrive;
 import frc.robot.commands.drive.YoureUnderArrest;
 import frc.robot.commands.intake.IntakeIn;
@@ -99,6 +100,8 @@ public class RobotContainer {
 
     new SpindexerSpin();
     new ChimneyUp();
+
+    new SlowSwerveDrive(null);
   }
 
   private void configureBindings() {

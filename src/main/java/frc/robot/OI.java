@@ -15,6 +15,7 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.robot.commands.drive.JoystickHeadingDrive;
+import frc.robot.commands.drive.SlowSwerveDrive;
 import frc.robot.commands.intake.DeployerIn;
 import frc.robot.commands.intake.DeployerOut;
 import frc.robot.commands.intake.IntakeIn;
@@ -108,10 +109,11 @@ public class OI {
 				.whileTrue(m_driverXboxController.b(), new ChimneyUp())
 				*/
 
-				.whileTrue(m_driverXboxController.leftTrigger(), new DeployerOut())
+				.whileTrue(m_driverXboxController.b(), new DeployerOut())
 				.whileTrue(m_driverXboxController.rightTrigger(), new DeployerIn())
 				.whileTrue(m_driverXboxController.leftBumper(), new IntakeIn())
 				.whileTrue(m_driverXboxController.rightBumper(), new IntakeAAAAA())
+				.whileTrue(m_driverXboxController.leftTrigger(), new SlowSwerveDrive(m_driveInputs))
 
 				.whileTrue(m_driverXboxController.a(), new JoystickHeadingDrive(m_driveInputs))
 
