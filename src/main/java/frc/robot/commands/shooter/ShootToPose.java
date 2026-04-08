@@ -5,14 +5,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 
+import edu.wpi.first.math.Vector;
 import edu.wpi.first.math.geometry.Pose3d;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.RobotBase;
 import frc.robot.Robot;
 import frc.robot.subsystems.Drive;
@@ -85,18 +86,19 @@ public class ShootToPose extends Command {
             m_ballVelocityLogger = StructLogger.translation3dLogger(m_Shooter, "BaseBallVelocity", null);
             m_correctedTargetLogger = StructLogger.translation3dLogger(m_Shooter, "TargetBallVelocity", null);
             m_chassisVelocityLogger = StructLogger.translation3dLogger(m_Shooter, "ChassisVelocity", null);
-
-            Configuration cfg = Configuration.getInstance();
-            m_chassisToTurret = new Transform3d(
-                new Pose3d(),
-                new Pose3d(
-                    new Translation3d(
-                        cfg.getDouble("Shooter", "turretPositionX"),
-                        cfg.getDouble("Shooter", "turretPositionY"),
-                        cfg.getDouble("Shooter", "turretPositionZ")
-                    ), Rotation3d.kZero)
-            );
         }
+
+
+        Configuration cfg = Configuration.getInstance();
+        m_chassisToTurret = new Transform3d(
+            new Pose3d(),
+            new Pose3d(
+                new Translation3d(
+                    cfg.getDouble("Shooter", "turretPositionX"),
+                    cfg.getDouble("Shooter", "turretPositionY"),
+                    cfg.getDouble("Shooter", "turretPositionZ")
+                ), Rotation3d.kZero)
+        );
 
         // Drive/Vision isn't a requirement - it's used for reading only
         addRequirements(m_Shooter);
@@ -124,14 +126,14 @@ public class ShootToPose extends Command {
         TrajectoryConditions conditions = new TrajectoryConditions();
         TrajectoryParameters params = null;
 
+        Vector<N3> angLinVel = m_chassisToTurret.getTranslation().cross(new Translation3d(0,0,chassisSpeeds.omegaRadiansPerSecond));
+
         for (int i = 0; i < ITERATIONS; i++) {
             Translation3d compensatingTarget = target.getTranslation();
             if (params != null) {
-                compensatingTarget = compensatingTarget.minus(new Translation3d(chassisVelocity.times(params.time)));
-                // Translation3d turretCOMoffset = m_chassisToTurret.getTranslation();
-                // compensatingTarget = compensatingTarget.minus(turretCOMoffset
-                //     .rotateBy(new Rotation3d(0, 0, chassisSpeeds.omegaRadiansPerSecond*params.time)))
-                //     .plus(turretCOMoffset);
+                compensatingTarget = compensatingTarget
+                    .minus(new Translation3d(chassisVelocity.times(params.time)))
+                    .minus(new Translation3d(angLinVel.times(params.time)));
             }
 
             double dist = turretPose.getTranslation().toTranslation2d().getDistance(compensatingTarget.toTranslation2d());
@@ -200,6 +202,7 @@ public class ShootToPose extends Command {
 
                 Translation3d physBallOffset = baseBallVelocity
                     .plus(new Translation3d(chassisVelocity))
+                    .plus(new Translation3d(angLinVel))
                     .times(t)
                     .plus(new Translation3d(0, 0, -4.9*t*t));
                 m_ballPositions.add(conditions.launch.plus(physBallOffset));

@@ -14,12 +14,14 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
+import frc.robot.Constants.ControllerLayout;
 import frc.robot.commands.drive.JoystickHeadingDrive;
 import frc.robot.commands.drive.SlowSwerveDrive;
 import frc.robot.commands.intake.DeployerIn;
 import frc.robot.commands.intake.DeployerOut;
-import frc.robot.commands.intake.IntakeIn;
 import frc.robot.commands.intake.IntakeAAAAA;
+import frc.robot.commands.intake.IntakeIn;
+import frc.robot.commands.intake.IntakeOscillate;
 import frc.robot.commands.shooter.StopTurretCalibration;
 import frc.robot.commands.shooter.CalibrateTurretFull;
 import frc.robot.commands.shooter.ChimneyDown;
@@ -88,7 +90,7 @@ public class OI {
 	public void bindControls() {
 		//SwitchIndicator driverIndicator = new RumbleIndicator(m_driverXboxController.getHID());
 		SwitchIndicator driverIndicator = new PrintIndicator();
-		new TriggerBuilder<Submap>(m_driverSubmap)
+		TriggerBuilder<Submap> driverTriggerBuilder = new TriggerBuilder<>(m_driverSubmap)
 			.beginSubmap(Submap.DRIVE_SYSID)
 				.whileTrue(m_driverXboxController.x(), Drive.getInstance().sysIdQuasistatic(Direction.kForward))
 				.whileTrue(m_driverXboxController.a(), Drive.getInstance().sysIdQuasistatic(Direction.kReverse))
@@ -100,7 +102,7 @@ public class OI {
 
 			.onTrue(m_driverXboxController.back(), new InstantCommand(()->Drive.getInstance().zeroHeading()))
 
-			.beginSubmap(Submap.MANUAL)
+			.beginSubmap(Submap.AUTO)
 				/*
 				.whileTrue(m_driverXboxController.leftTrigger(), new IntakeIn())
 				.whileTrue(m_driverXboxController.rightTrigger(), new IntakeOut())
@@ -112,26 +114,37 @@ public class OI {
 
 				.whileTrue(m_driverXboxController.b(), new DeployerOut())
 				.whileTrue(m_driverXboxController.rightTrigger(), new DeployerIn())
+
 				.whileTrue(m_driverXboxController.leftBumper(), new IntakeIn())
+				.whileTrue(m_driverXboxController.povUp(), new IntakeOscillate())
 				.whileTrue(m_driverXboxController.rightBumper(), new IntakeAAAAA())
+
 				.whileTrue(m_driverXboxController.leftTrigger(), new SlowSwerveDrive(m_driveInputs))
 
-				.whileTrue(m_driverXboxController.a(), new JoystickHeadingDrive(m_driveInputs))
-
-				.whileTrue(m_driverXboxController.povUp(), Commands.startEnd(
-					()->{Climber.getInstance().setClimberTargetAngle(5);},
-					()->{Climber.getInstance().setClimberTargetAngle(0);}
-				))
-				//.onTrue(m_driverXboxController.povUp(), Commands.print("you're not crazy yet"))
-				
-				.switchSubmap(driverIndicator, m_driverXboxController.start(), Submap.AUTO)
-			.endSubmap()
-
-			.beginSubmap(Submap.AUTO)
 				.switchSubmap(driverIndicator, m_driverXboxController.start(), Submap.MANUAL)
 			.endSubmap()
 
-			.register();
+			.beginSubmap(Submap.MANUAL)
+				.switchSubmap(driverIndicator, m_driverXboxController.start(), Submap.AUTO)
+			.endSubmap();
+
+		if (Constants.CONTROLLER_LAYOUT == ControllerLayout.DEBUG) {
+			driverTriggerBuilder
+				.beginSubmap(Submap.AUTO)
+					.whileTrue(m_driverXboxController.x(), new FerryShoot(false))
+					.whileTrue(m_driverXboxController.a(), new ShootToPose(FieldUtils.getInstance()::getHubPose))
+					.whileTrue(m_driverXboxController.y(), Commands.parallel(
+						new SpindexerSpin(),
+						new ChimneyUp()
+					))
+				.endSubmap()
+
+				.beginSubmap(Submap.MANUAL)
+					.onTrue(m_operatorXboxController.b(), new CalibrateTurretFull())
+				.endSubmap();
+		}
+
+		driverTriggerBuilder.register();
 
 		SwitchIndicator operatorIndicator = new RumbleIndicator(m_operatorXboxController.getHID());
 		new TriggerBuilder<Submap>(m_operatorSubmap)
