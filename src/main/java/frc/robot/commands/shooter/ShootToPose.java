@@ -5,13 +5,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 
+import edu.wpi.first.math.Vector;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
+import edu.wpi.first.math.geometry.Twist2d;
+import edu.wpi.first.math.geometry.Twist3d;
 import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.RobotBase;
 import frc.robot.Robot;
 import frc.robot.subsystems.Drive;
@@ -84,18 +89,19 @@ public class ShootToPose extends Command {
             m_ballVelocityLogger = StructLogger.translation3dLogger(m_Shooter, "BaseBallVelocity", null);
             m_correctedTargetLogger = StructLogger.translation3dLogger(m_Shooter, "TargetBallVelocity", null);
             m_chassisVelocityLogger = StructLogger.translation3dLogger(m_Shooter, "ChassisVelocity", null);
-
-            Configuration cfg = Configuration.getInstance();
-            m_chassisToTurret = new Transform3d(
-                new Pose3d(),
-                new Pose3d(
-                    new Translation3d(
-                        cfg.getDouble("Shooter", "turretPositionX"),
-                        cfg.getDouble("Shooter", "turretPositionY"),
-                        cfg.getDouble("Shooter", "turretPositionZ")
-                    ), Rotation3d.kZero)
-            );
         }
+
+
+        Configuration cfg = Configuration.getInstance();
+        m_chassisToTurret = new Transform3d(
+            new Pose3d(),
+            new Pose3d(
+                new Translation3d(
+                    cfg.getDouble("Shooter", "turretPositionX"),
+                    cfg.getDouble("Shooter", "turretPositionY"),
+                    cfg.getDouble("Shooter", "turretPositionZ")
+                ), Rotation3d.kZero)
+        );
 
         // Drive/Vision isn't a requirement - it's used for reading only
         addRequirements(m_Shooter);
@@ -118,15 +124,17 @@ public class ShootToPose extends Command {
         }
 
         ChassisSpeeds chassisSpeeds = ChassisSpeeds.fromRobotRelativeSpeeds(m_Drive.getMeasuredSpeeds(), m_Drive.getPose().getRotation());
-        Translation2d chassisVelocity = new Translation2d(chassisSpeeds.vxMetersPerSecond, chassisSpeeds.vyMetersPerSecond);
 
         TrajectoryConditions conditions = new TrajectoryConditions();
         TrajectoryParameters params = null;
 
         for (int i = 0; i < ITERATIONS; i++) {
-            Translation3d compensatingTarget = target.getTranslation();
+            Translation3d compensatingTarget;
             if (params != null) {
-                compensatingTarget = compensatingTarget.minus(new Translation3d(chassisVelocity.times(params.time)));
+                Twist2d twist = chassisSpeeds.toTwist2d(params.time);
+                compensatingTarget = target.exp(new Twist3d(-twist.dx, -twist.dy, 0, 0, 0, -twist.dtheta)).getTranslation();
+            } else {
+                compensatingTarget = target.getTranslation();
             }
 
             double dist = turretPose.getTranslation().toTranslation2d().getDistance(compensatingTarget.toTranslation2d());
@@ -135,7 +143,6 @@ public class ShootToPose extends Command {
             conditions.launch = turretPose.getTranslation();
             conditions.target = compensatingTarget;
             conditions.theta_pitch = angle;
-            conditions.chassis_velocity = chassisVelocity;
             conditions.compensate_for_velocity = false;
             
             TrajectoryParameters newParams = TrajectorySolver.solveTrajectory(conditions);
@@ -167,13 +174,13 @@ public class ShootToPose extends Command {
         m_Shooter.setFlywheelTarget(flywheelRPM);
 
         // System.out.println(m_Shooter.turretAtTarget() + " " + m_Shooter.flywheelAtTarget() + " " + m_Shooter.hoodAtTarget());
-        // if (m_Shooter.turretAtTarget() && m_Shooter.flywheelAtTarget()) {
+        if (m_Shooter.flywheelAtTarget()) {
             LED.getInstance().setPattern(1, LEDPattern.kCheckeredBlinkGreen, Priority.INFO);
             m_Shooter.chimneySpeed(1);
-        // } else {
+        } else {
             // LED.getInstance().setPattern(1, LEDPattern.kCheckeredBlinkYellow, Priority.INFO);
-            // m_Shooter.chimneyStop();
-        // }
+            m_Shooter.chimneyStop();
+        }
 
         if (RobotBase.isSimulation()) {
             Translation3d baseBallVelocity = new Translation3d(params.velocity,0,0).rotateBy(new Rotation3d(
@@ -193,11 +200,12 @@ public class ShootToPose extends Command {
                     .plus(new Translation3d(0, 0, -4.9*t*t));
                 m_ballPositions.add(conditions.launch.plus(targetBallOffset));
 
-                Translation3d physBallOffset = baseBallVelocity
-                    .plus(new Translation3d(chassisVelocity))
-                    .times(t)
-                    .plus(new Translation3d(0, 0, -4.9*t*t));
-                m_ballPositions.add(conditions.launch.plus(physBallOffset));
+                // Translation3d physBallOffset = baseBallVelocity
+                //     .plus(new Translation3d(chassisVelocity))
+                //     .plus(new Translation3d(angLinVel))
+                //     .times(t)
+                //     .plus(new Translation3d(0, 0, -4.9*t*t));
+                // m_ballPositions.add(conditions.launch.plus(physBallOffset));
             }
 
             Translation3d[] array = new Translation3d[m_ballPositions.size()];
@@ -206,7 +214,7 @@ public class ShootToPose extends Command {
 
             m_ballVelocityLogger.setStruct(baseBallVelocity);
             m_correctedTargetLogger.setStruct(correctedTarget);
-            m_chassisVelocityLogger.setStruct(new Translation3d(chassisVelocity));
+            // m_chassisVelocityLogger.setStruct(new Translation3d(chassisVelocity));
         }
 
         m_Shooter.updateTrajectoryDisplay(conditions, params);

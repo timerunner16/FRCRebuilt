@@ -29,6 +29,7 @@ public class FerryShoot extends Command {
     private final OI m_OI;
     
     private final ShootToPose m_internalShootToPose;
+    private final boolean m_enableJoysticking;
 
     private Translation2d m_targetPosition;
 
@@ -37,6 +38,10 @@ public class FerryShoot extends Command {
     private static final VelocityMapping FERRY_VELOCITY_MAP = new VelocityMapping(3.15, 11.0, 0750, 6000);
 
     public FerryShoot() {
+        this(true);
+    }
+
+    public FerryShoot(boolean enableJoysticking) {
         super(Shooter.getInstance(), "Targeted Shooting", "FerryShoot");
         m_Shooter = Shooter.getInstance();
         m_FieldUtils = FieldUtils.getInstance();
@@ -49,6 +54,7 @@ public class FerryShoot extends Command {
             new TDSendable(m_Shooter, "Targeted Shooting", "FerryTargetDisplay", m_field);
         }
 
+        m_enableJoysticking = enableJoysticking;
         m_internalShootToPose = ShootToPose.withFixedValues(this::getTargetPosition, Math.toRadians(40), FERRY_VELOCITY_MAP);
     }
 
@@ -78,13 +84,16 @@ public class FerryShoot extends Command {
 
     @Override
     public void execute() {
-        Alliance alliance = DriverStation.getAlliance().orElse(Alliance.Blue);
-        double x = m_OI.getOperatorController().getRightY();
-        double y = -m_OI.getOperatorController().getRightX();
-        Translation2d offset = new Translation2d(MathUtil.applyDeadband(x, 0.05), MathUtil.applyDeadband(y, 0.05));
-        if (alliance == Alliance.Red) offset = offset.unaryMinus();
+        if (m_enableJoysticking) {
+            Alliance alliance = DriverStation.getAlliance().orElse(Alliance.Blue);
+            double x = m_OI.getOperatorController().getRightY();
+            double y = -m_OI.getOperatorController().getRightX();
+            Translation2d offset = new Translation2d(MathUtil.applyDeadband(x, 0.05), MathUtil.applyDeadband(y, 0.05));
+            if (alliance == Alliance.Red) offset = offset.unaryMinus();
 
-        m_targetPosition = m_targetPosition.plus(offset.times(Constants.schedulerPeriodTime));
+            m_targetPosition = m_targetPosition.plus(offset.times(Constants.schedulerPeriodTime));
+        }
+
         m_field.getRobotObject().setPose(new Pose2d(m_targetPosition, Rotation2d.kZero));
         m_internalShootToPose.execute();
     }

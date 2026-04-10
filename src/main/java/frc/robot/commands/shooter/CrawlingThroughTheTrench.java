@@ -5,6 +5,7 @@
 package frc.robot.commands.shooter;
 import frc.robot.subsystems.Shooter;
 import frc.robot.testingdashboard.Command;
+import frc.robot.utils.FieldUtils;
 
 /* You should consider using the more terse Command factories API instead https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html#defining-commands */
 public class CrawlingThroughTheTrench extends Command {
@@ -26,7 +27,11 @@ public class CrawlingThroughTheTrench extends Command {
 
   // Called every time the scheduler runs while the command is scheduled.
   @Override
-  public void execute() {}
+  public void execute() {
+    m_shooter.setTurretTarget(FieldUtils.getInstance().getAngleToPose(
+      m_shooter.getTurretPose().toPose2d(),
+      FieldUtils.getInstance().getHubPose().toPose2d()).getRadians(), 0);
+  }
 
   // Called once the command ends or is interrupted.
   @Override
