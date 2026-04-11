@@ -28,10 +28,11 @@ public final class Constants {
 
     public enum ControllerLayout {
         COMPETITION,
-        DEBUG
+        DEBUG,
+        DEMO2,
     }
 
-    public static final ControllerLayout CONTROLLER_LAYOUT = ControllerLayout.DEBUG;
+    public static final ControllerLayout CONTROLLER_LAYOUT = ControllerLayout.DEMO2;
 
     public static final class SwerveModuleConstants {
         public static final boolean kTurningEncoderInverted = true;
