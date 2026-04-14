@@ -277,7 +277,7 @@ public class Drive extends SubsystemBase {
       });
     m_poseLogger.setStruct(updated);
 
-    ChassisSpeeds currentSpeeds = getMeasuredSpeeds();
+    ChassisSpeeds currentSpeeds = getMeasuredFieldRelativeSpeeds();
     m_recentSpeeds.add(currentSpeeds);
     if (m_recentSpeeds.size() > 5) {
       m_recentSpeeds.remove(0);
