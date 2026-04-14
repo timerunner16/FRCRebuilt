@@ -32,7 +32,7 @@ public final class Constants {
         DEMO2,
     }
 
-    public static final ControllerLayout CONTROLLER_LAYOUT = ControllerLayout.DEBUG;
+    public static final ControllerLayout CONTROLLER_LAYOUT = ControllerLayout.COMPETITION;
 
     public static final class SwerveModuleConstants {
         public static final boolean kTurningEncoderInverted = true;
