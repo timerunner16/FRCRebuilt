@@ -35,7 +35,7 @@ public class FerryShoot extends Command {
 
     private static Field2d m_field;
 
-    private static final VelocityMapping FERRY_VELOCITY_MAP = new VelocityMapping(3.15, 11.0, 1250, 7000);
+    private static final VelocityMapping FERRY_VELOCITY_MAP = new VelocityMapping(7.00, 11.0, 4000, 7000);
 
     public FerryShoot() {
         this(true);
