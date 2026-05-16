@@ -3,43 +3,53 @@
 // the WPILib BSD license file in the root directory of this project.
 
 package frc.robot.commands.shooter;
+
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
+import frc.robot.Constants;
 import frc.robot.subsystems.Shooter;
 import frc.robot.testingdashboard.Command;
 import frc.robot.utils.FieldUtils;
 
 /* You should consider using the more terse Command factories API instead https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html#defining-commands */
 public class CrawlingThroughTheTrench extends Command {
-  private final Shooter m_shooter;
+    private final Shooter m_shooter;
 
-  /** Creates a new CrawlingThroughTheTrench. */
-  public CrawlingThroughTheTrench() {
-    // Use addRequirements() here to declare subsystem dependencies.
-    super(Shooter.getInstance(), "Shooter", "CrawlingThroughTheTrench");
-    m_shooter = Shooter.getInstance();
-    addRequirements(m_shooter);
-  }
+    /** Creates a new CrawlingThroughTheTrench. */
+    public CrawlingThroughTheTrench() {
+        // Use addRequirements() here to declare subsystem dependencies.
+        super(Shooter.getInstance(), "Shooter", "CrawlingThroughTheTrench");
+        m_shooter = Shooter.getInstance();
+        addRequirements(m_shooter);
+    }
 
-  // Called when the command is initially scheduled.
-  @Override
-  public void initialize() {
-    m_shooter.setHoodTarget(0);
-  }
+    // Called when the command is initially scheduled.
+    @Override
+    public void initialize() {
+        m_shooter.setHoodTarget(0);
+    }
 
-  // Called every time the scheduler runs while the command is scheduled.
-  @Override
-  public void execute() {
-    m_shooter.setTurretTarget(FieldUtils.getInstance().getAngleToPose(
-      m_shooter.getTurretPose().toPose2d(),
-      FieldUtils.getInstance().getHubPose().toPose2d()).getRadians(), 0);
-  }
+    // Called every time the scheduler runs while the command is scheduled.
+    @Override
+    public void execute() {
+        Pose2d targetPose = FieldUtils.getInstance().getHubPose().toPose2d();
+        if (Constants.CONTROLLER_LAYOUT == Constants.ControllerLayout.TRASH) {
+            targetPose = FieldUtils.getInstance().getTrashPose().toPose2d();
+        }
 
-  // Called once the command ends or is interrupted.
-  @Override
-  public void end(boolean interrupted) {}
+        m_shooter.setTurretTarget(FieldUtils.getInstance().getAngleToPose(
+                m_shooter.getTurretPose().toPose2d(),
+                targetPose).getRadians(), 0);
+    }
 
-  // Returns true when the command should end.
-  @Override
-  public boolean isFinished() {
-    return false;
-  }
+    // Called once the command ends or is interrupted.
+    @Override
+    public void end(boolean interrupted) {
+    }
+
+    // Returns true when the command should end.
+    @Override
+    public boolean isFinished() {
+        return false;
+    }
 }

@@ -1,6 +1,5 @@
 package frc.robot;
 
-
 import java.util.Map;
 
 import com.pathplanner.lib.config.PIDConstants;
@@ -30,9 +29,10 @@ public final class Constants {
         COMPETITION,
         DEBUG,
         DEMO2,
+        TRASH
     }
 
-    public static final ControllerLayout CONTROLLER_LAYOUT = ControllerLayout.COMPETITION;
+    public static final ControllerLayout CONTROLLER_LAYOUT = ControllerLayout.TRASH;
 
     public static final class SwerveModuleConstants {
         public static final boolean kTurningEncoderInverted = true;
@@ -47,11 +47,12 @@ public final class Constants {
         public static final double kWheelCircumferenceMeters = kWheelDiameterMeters * Math.PI;
 
         public static final int kDrivingMotorPinionTeeth = config.getInt("Drive", "PinionTeeth");
-        public static final double kDrivingMotorReduction = (45.0*22)/(kDrivingMotorPinionTeeth*15);
+        public static final double kDrivingMotorReduction = (45.0 * 22) / (kDrivingMotorPinionTeeth * 15);
 
         public static final double kDriveMotorFreeSpeedRPM = config.getInt("Drive", "DriveMotorFreeSpeed");
         public static final double kDrivingMotorFreeSpeedRPS = kDriveMotorFreeSpeedRPM / 60;
-        public static final double kDriveWheelFreeSpeedMPS = (kDrivingMotorFreeSpeedRPS * kWheelCircumferenceMeters) / kDrivingMotorReduction;
+        public static final double kDriveWheelFreeSpeedMPS = (kDrivingMotorFreeSpeedRPS * kWheelCircumferenceMeters)
+                / kDrivingMotorReduction;
         static double nominalVoltage = 12.0;
 
         public static final double kDrivingP = config.getDouble("Drive", "DrivingkP");
@@ -70,8 +71,10 @@ public final class Constants {
         public static final double kTurningMinOutput = -1;
         public static final double kTurningMaxOutput = 1;
 
-        public static final double kDrivingEncoderPositionFactor = (kWheelDiameterMeters * Math.PI) / kDrivingMotorReduction;
-        public static final double kDrivingEncoderVelocityFactor = ((kWheelDiameterMeters * Math.PI) / kDrivingMotorReduction) / 60.0;
+        public static final double kDrivingEncoderPositionFactor = (kWheelDiameterMeters * Math.PI)
+                / kDrivingMotorReduction;
+        public static final double kDrivingEncoderVelocityFactor = ((kWheelDiameterMeters * Math.PI)
+                / kDrivingMotorReduction) / 60.0;
 
         public static final double kTurningEncoderPositionFactor = 2 * Math.PI;
         public static final double kTurningEncoderVelocityFactor = (2 * Math.PI) / 60.0;
@@ -90,17 +93,16 @@ public final class Constants {
         public static final Translation2d kBackRightLocation = new Translation2d(-0.381, -0.381);
 
         public static final Translation2d[] kModuleLocations = new Translation2d[] {
-            kFrontLeftLocation, kFrontRightLocation, kBackLeftLocation, kBackRightLocation
+                kFrontLeftLocation, kFrontRightLocation, kBackLeftLocation, kBackRightLocation
         };
 
         public static final SwerveDriveKinematics kinematics = new SwerveDriveKinematics(
-            kFrontLeftLocation, kFrontRightLocation, kBackLeftLocation, kBackRightLocation
-        );
+                kFrontLeftLocation, kFrontRightLocation, kBackLeftLocation, kBackRightLocation);
 
-        public static final double kFrontLeftChassisAngularOffset = -Math.PI/2;
+        public static final double kFrontLeftChassisAngularOffset = -Math.PI / 2;
         public static final double kFrontRightChassisAngularOffset = 0;
         public static final double kBackLeftChassisAngularOffset = Math.PI;
-        public static final double kBackRightChassisAngularOffset = Math.PI/2;
+        public static final double kBackRightChassisAngularOffset = Math.PI / 2;
 
         public static final double kDirectionSlewRate = 1.2; // radians per second
         public static final double kMagnitudeSlewRate = 1.8; // percent per second (1 = 100%)
@@ -111,7 +113,8 @@ public final class Constants {
 
         public static final double kSlowDrive = 0.2;
     }
-    public static final class IntakeConstants{
+
+    public static final class IntakeConstants {
         public static final int kIntakeID = -1;
     }
 
@@ -119,17 +122,20 @@ public final class Constants {
         public static final double kMaxSpeedMetersPerSecond = SwerveModuleConstants.kDriveWheelFreeSpeedMPS;
         public static final double kMaxAccelerationMetersPerSecondSquared = 10;
         public static final double kMaxAngularSpeedRadiansPerSecond = Math.PI;
-        public static final double kMaxAngularSpeedRadiansPerSecondSquared = 4*Math.PI;
+        public static final double kMaxAngularSpeedRadiansPerSecondSquared = 4 * Math.PI;
 
-
-        public static final double kPathFollowerMaxSpeed = AutoConstants.kMaxSpeedMetersPerSecond; // Max module speed, in m/s
+        public static final double kPathFollowerMaxSpeed = AutoConstants.kMaxSpeedMetersPerSecond; // Max module speed,
+                                                                                                   // in m/s
         public static final double kPathFollowerBaseRadius = DriveConstants.kBaseRadius; // Drive base radius in meters
         public static final double kPathFollowerMass = 52.1631; // 115 pounds
-        public static final double kPathFollowerMomentOfInertia = 6.2; // Total guess. Rough estimate of l^2 + w^2 * m * 1/12
+        public static final double kPathFollowerMomentOfInertia = 6.2; // Total guess. Rough estimate of l^2 + w^2 * m *
+                                                                       // 1/12
         public static final double kPathFollowerWheelCoeficientFriction = 1.2; // Total guess. pathplaner default
 
-        public static final PIDConstants kPathFollowerTranslationPID = new PIDConstants(5.0, 0.0, 0.0); // Translation PID constants
-        public static final PIDConstants kPathFollowerRotationPID = new PIDConstants(5.0, 0.0, 0.0); // Rotation PID constants    
+        public static final PIDConstants kPathFollowerTranslationPID = new PIDConstants(5.0, 0.0, 0.0); // Translation
+                                                                                                        // PID constants
+        public static final PIDConstants kPathFollowerRotationPID = new PIDConstants(5.0, 0.0, 0.0); // Rotation PID
+                                                                                                     // constants
     }
 
     public static final class FieldLocationConstants {
@@ -140,11 +146,14 @@ public final class Constants {
     }
 
     public static final class VisionConstants {
-        public static final AprilTagFieldLayout kTagLayout = AprilTagFieldLayout.loadField(AprilTagFields.k2026RebuiltWelded);
+        public static final AprilTagFieldLayout kTagLayout = AprilTagFieldLayout
+                .loadField(AprilTagFields.k2026RebuiltWelded);
 
-        public static final Matrix<N3, N1> kSingleTagStdDevs = VecBuilder.fill(1.2,1.2,0.8);//VecBuilder.fill(0.1, 0.1, 0.05);
-        public static final Matrix<N3, N1> kMultiTagStdDevs = VecBuilder.fill(0.6,0.6,0.4);//VecBuilder.fill(0.05, 0.05, 0.001);
-        
+        public static final Matrix<N3, N1> kSingleTagStdDevs = VecBuilder.fill(1.2, 1.2, 0.8);// VecBuilder.fill(0.1,
+                                                                                              // 0.1, 0.05);
+        public static final Matrix<N3, N1> kMultiTagStdDevs = VecBuilder.fill(0.6, 0.6, 0.4);// VecBuilder.fill(0.05,
+                                                                                             // 0.05, 0.001);
+
         // Maximum ambiguity accepted as a valid result from the vision systems
         public static final double kMaxValidAmbiguity = 0.2;
         public static final double kMaxZError = 0.75;
@@ -159,64 +168,76 @@ public final class Constants {
         public static final double kVelocityFactor = 1.0;
         public static final double kFlywheelVelocityFactor = 1.0;
 
-        public static final double kHoodMotorFreeSpeed = Configuration.getInstance().getDouble("Shooter", "hoodMotorFreeSpeed");
+        public static final double kHoodMotorFreeSpeed = Configuration.getInstance().getDouble("Shooter",
+                "hoodMotorFreeSpeed");
 
-        public static final double kHoodGearRatioNumerator = Configuration.getInstance().getDouble("Shooter", "hoodGearRatioNumerator");
-        public static final double kHoodGearRatioDenominator = Configuration.getInstance().getDouble("Shooter", "hoodGearRatioDenominator");
+        public static final double kHoodGearRatioNumerator = Configuration.getInstance().getDouble("Shooter",
+                "hoodGearRatioNumerator");
+        public static final double kHoodGearRatioDenominator = Configuration.getInstance().getDouble("Shooter",
+                "hoodGearRatioDenominator");
         public static final double kHoodPositionConversion = 360 * kHoodGearRatioNumerator / kHoodGearRatioDenominator;
         public static final double kHoodVelocityConversion = kHoodPositionConversion / 60;
         public static final double kHoodMaxVelocityDegreesPerSec = kHoodMotorFreeSpeed * kHoodVelocityConversion;
-        public static final double kHoodMaxAcceleration = Configuration.getInstance().getDouble("Shooter", "hoodMaxAcceleration");
-        public static final double kHoodStallDetectCurrent = 5; //amps
-        public static final double kHoodStallSpeedTolerance = 5; //Degrees per second
+        public static final double kHoodMaxAcceleration = Configuration.getInstance().getDouble("Shooter",
+                "hoodMaxAcceleration");
+        public static final double kHoodStallDetectCurrent = 5; // amps
+        public static final double kHoodStallSpeedTolerance = 5; // Degrees per second
         public static final double kHoodMaxAngle = Configuration.getInstance().getDouble("Shooter", "hoodMaxAngle");
         public static final double kHoodMinAngle = Configuration.getInstance().getDouble("Shooter", "hoodMinAngle");
-        public static final double kHoodAngleOffset = Configuration.getInstance().getDouble("Shooter", "hoodAngleOffset");
+        public static final double kHoodAngleOffset = Configuration.getInstance().getDouble("Shooter",
+                "hoodAngleOffset");
         public static final double kHoodToleranceDegrees = 0.1;
 
-        public static final double kTurretPlanetaryRatio = Configuration.getInstance().getDouble("Shooter", "turretPlanetaryRatio");
-        public static final double kTurretPinionTeeth = Configuration.getInstance().getDouble("Shooter", "turretPinionTeeth");
-        public static final double kTurretGearTeeth = Configuration.getInstance().getDouble("Shooter", "turretGearTeeth");
-        public static final double kTurretPositionFactor = 1.0/Configuration.getInstance().getDouble("Shooter", "turretRatio") * 2 * Math.PI;//2*Math.PI * kTurretPinionTeeth / (kTurretGearTeeth * kTurretPlanetaryRatio);
+        public static final double kTurretPlanetaryRatio = Configuration.getInstance().getDouble("Shooter",
+                "turretPlanetaryRatio");
+        public static final double kTurretPinionTeeth = Configuration.getInstance().getDouble("Shooter",
+                "turretPinionTeeth");
+        public static final double kTurretGearTeeth = Configuration.getInstance().getDouble("Shooter",
+                "turretGearTeeth");
+        public static final double kTurretPositionFactor = 1.0
+                / Configuration.getInstance().getDouble("Shooter", "turretRatio") * 2 * Math.PI;// 2*Math.PI *
+                                                                                                // kTurretPinionTeeth /
+                                                                                                // (kTurretGearTeeth *
+                                                                                                // kTurretPlanetaryRatio);
 
         public static final String kTurretCameraName = "TurretCamera";
 
-        public static final double kTurretMaxAccel = 10*Math.PI;
+        public static final double kTurretMaxAccel = 10 * Math.PI;
         public static final double kTurretMaxVelocity = 7.5;
         public static final double kBasicShooterRPM = 2000;
 
-        public static final double kTurretVisionTimeout = 4.0; //Time after which we stop trusting the turret pose without vision updates
+        public static final double kTurretVisionTimeout = 4.0; // Time after which we stop trusting the turret pose
+                                                               // without vision updates
 
         public static final double kChimneySpeed = 1.0;
 
         public static final boolean kVelocityMapQuadratic = false;
 
         public static final double kVelocityQuadTermA = -1.38783676087633866e-7;
-        public static final double kVelocityQuadTermB =  3.08206828359486795e-3;
-        public static final double kVelocityQuadTermC =  9.78677085670659030e-1;
+        public static final double kVelocityQuadTermB = 3.08206828359486795e-3;
+        public static final double kVelocityQuadTermC = 9.78677085670659030e-1;
 
         public static final InterpolatingVelocityMap kVelocityMap = new InterpolatingVelocityMap(Map.ofEntries(
-            Map.entry(Math.toRadians(45), new VelocityMapping(3.15, 9.58,  800, 4300)),
-            Map.entry(Math.toRadians(60), new VelocityMapping(6.50, 8.25, 2800, 3550)),
-            Map.entry(Math.toRadians(65), new VelocityMapping(2.06, 7.84,  550, 3800))
-        ));
+                Map.entry(Math.toRadians(45), new VelocityMapping(3.15, 9.58, 800, 4300)),
+                Map.entry(Math.toRadians(60), new VelocityMapping(6.50, 8.25, 2800, 3550)),
+                Map.entry(Math.toRadians(65), new VelocityMapping(2.06, 7.84, 550, 3800))));
 
         /*
-        public static final double[][] kVelocityLinTerms = {
-            //                   angle,   slope, y-intercept
-            {Math.toRadians(45), 1.85e-3,     2.18000},
-            {Math.toRadians(50), 1.80e-3,     1.94375},
-            {Math.toRadians(65), 1.65e-3,     1.23500},
-        };
-        // values for 45 degrees (farther from hub)
-        public static final double kVelocityLinTermM_45 = 0.00185;
-        public static final double kVelocityLinTermB_45 = 2.18;
-        // values for 50 degrees (farther from hub)
-        public static final double kVelocityLinTermM_50 = 0.0017;
-        public static final double kVelocityLinTermB_50 = 1.94375;
-        // values for 65 degrees (closer to hub)
-        public static final double kVelocityLinTermM_65 = 0.00165;
-        public static final double kVelocityLinTermB_65 = 1.235;
+         * public static final double[][] kVelocityLinTerms = {
+         * // angle, slope, y-intercept
+         * {Math.toRadians(45), 1.85e-3, 2.18000},
+         * {Math.toRadians(50), 1.80e-3, 1.94375},
+         * {Math.toRadians(65), 1.65e-3, 1.23500},
+         * };
+         * // values for 45 degrees (farther from hub)
+         * public static final double kVelocityLinTermM_45 = 0.00185;
+         * public static final double kVelocityLinTermB_45 = 2.18;
+         * // values for 50 degrees (farther from hub)
+         * public static final double kVelocityLinTermM_50 = 0.0017;
+         * public static final double kVelocityLinTermB_50 = 1.94375;
+         * // values for 65 degrees (closer to hub)
+         * public static final double kVelocityLinTermM_65 = 0.00165;
+         * public static final double kVelocityLinTermB_65 = 1.235;
          */
     }
 
@@ -226,7 +247,8 @@ public final class Constants {
 
     public static final class ClimberConstants {
         // Climber Constants
-        public static final boolean kEnableClimberPIDTuning = Configuration.getInstance().getBool("Climber", "tuneClimber");
+        public static final boolean kEnableClimberPIDTuning = Configuration.getInstance().getBool("Climber",
+                "tuneClimber");
         public static final boolean kEnableClimberClosedLoopControl = true;
         public static final double kClimberP = 0.3;
         public static final double kClimberI = 0;
@@ -242,7 +264,11 @@ public final class Constants {
         public static final double kClimberSpeed = 0.2;
         public static final double kClimberSpeedRPM = 30;
 
-        public static final double kClimberEncoderPositionFactor = (20.0/22.0*0.25); /* (planetary ratio) / (sprocket teeth) * (Inches per tooth) */
+        public static final double kClimberEncoderPositionFactor = (20.0 / 22.0 * 0.25); /*
+                                                                                          * (planetary ratio) /
+                                                                                          * (sprocket teeth) * (Inches
+                                                                                          * per tooth)
+                                                                                          */
 
         public static final double DEGREES_PER_REVOLUTION = 360;
         public static final double kClimberLowerLimitInches = 0;
@@ -252,6 +278,6 @@ public final class Constants {
     public static final class LEDConstants {
         public static final int LEDLength = 49; // number of LEDs
         public static final int kPositionSplitIndex = 10;
-        public static final boolean kInversePolarity = true; //dont know what it does but it seems cool
+        public static final boolean kInversePolarity = true; // dont know what it does but it seems cool
     }
 }
