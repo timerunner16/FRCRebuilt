@@ -23,15 +23,14 @@ import frc.robot.Constants.VisionConstants;
 import frc.robot.Constants;
 import frc.robot.Constants.FieldLocationConstants;
 
-public class FieldUtils{
+public class FieldUtils {
     private static FieldUtils m_fieldUtils;
     private Timer timer;
 
     private Alliance m_alliance;
 
     // I wrote the directions based on their position on a face
-    public static final AllianceAprilTags RedTags =
-        new AllianceAprilTags(
+    public static final AllianceAprilTags RedTags = new AllianceAprilTags(
             15,
             16,
             13,
@@ -48,8 +47,7 @@ public class FieldUtils{
             2,
             4,
             3);
-    public static final AllianceAprilTags BlueTags = 
-        new AllianceAprilTags(
+    public static final AllianceAprilTags BlueTags = new AllianceAprilTags(
             31,
             32,
             29,
@@ -58,8 +56,8 @@ public class FieldUtils{
             28,
             17,
             22,
-            25, 
-            26, 
+            25,
+            26,
             21,
             24,
             27,
@@ -68,13 +66,13 @@ public class FieldUtils{
             20);
 
     public static FieldUtils getInstance() {
-        if(m_fieldUtils == null){
+        if (m_fieldUtils == null) {
             m_fieldUtils = new FieldUtils();
         }
         return m_fieldUtils;
     }
 
-    private FieldUtils(){
+    private FieldUtils() {
         timer = new Timer();
         m_alliance = DriverStation.getAlliance().orElse(Alliance.Blue);
     }
@@ -84,18 +82,22 @@ public class FieldUtils{
         return m_alliance;
     }
 
-    public AllianceAprilTags getAllianceAprilTags(){
-        if (m_alliance == Alliance.Red) return RedTags;
-        else return BlueTags;
+    public AllianceAprilTags getAllianceAprilTags() {
+        if (m_alliance == Alliance.Red)
+            return RedTags;
+        else
+            return BlueTags;
     }
 
     public Pose3d getTagPose(int tagId) {
         return VisionConstants.kTagLayout.getTagPose(tagId).get();
     }
-    
+
     public Rotation2d getRotationOffset() {
-        if (m_alliance == Alliance.Red) return Rotation2d.k180deg;
-        else return Rotation2d.kZero;
+        if (m_alliance == Alliance.Red)
+            return Rotation2d.k180deg;
+        else
+            return Rotation2d.kZero;
     }
 
     public Rotation2d getAngleToPose(Pose2d currentPose, Pose2d targetPose) {
@@ -106,19 +108,29 @@ public class FieldUtils{
     }
 
     public boolean inAllianceHalf(Pose2d robotPose, Alliance alliance) {
-        if (alliance == Alliance.Blue) return robotPose.getX() < FieldLocationConstants.kMidfieldX;
-        else return robotPose.getX() > FieldLocationConstants.kMidfieldX;
+        if (alliance == Alliance.Blue)
+            return robotPose.getX() < FieldLocationConstants.kMidfieldX;
+        else
+            return robotPose.getX() > FieldLocationConstants.kMidfieldX;
     }
 
     public boolean inAllianceZone(Pose2d robotPose, Alliance alliance) {
-        if (alliance == Alliance.Blue) return robotPose.getX() < FieldLocationConstants.kBlueAllianceZoneX;
-        else return robotPose.getX() > FieldLocationConstants.kBlueAllianceZoneX;
+        if (alliance == Alliance.Blue)
+            return robotPose.getX() < FieldLocationConstants.kBlueAllianceZoneX;
+        else
+            return robotPose.getX() > FieldLocationConstants.kBlueAllianceZoneX;
     }
 
     public Pose3d getHubPose() {
         Transform3d tagToHub = new Transform3d(
-            new Translation3d(-Units.inchesToMeters(23.5), 0, Units.inchesToMeters(18.0)), Rotation3d.kZero);
+                new Translation3d(-Units.inchesToMeters(23.5), 0, Units.inchesToMeters(18.0)), Rotation3d.kZero);
         return getTagPose(getAllianceAprilTags().frontRightHub).transformBy(tagToHub);
+    }
+
+    public Pose3d getTrashPose() {
+        Transform3d tagToTrash = new Transform3d(
+                new Translation3d(Units.inchesToMeters(11), 0, -Units.inchesToMeters(16.5)), Rotation3d.kZero);
+        return getTagPose(getAllianceAprilTags().frontRightHub).transformBy(tagToTrash);
     }
 
     public enum AutoWinner {
@@ -137,14 +149,16 @@ public class FieldUtils{
 
     public Pose2d redPoseToAlliancePose(Pose2d pose) {
         AprilTagFieldLayout layout = Constants.VisionConstants.kTagLayout;
-        return (m_alliance == Alliance.Red) ? pose :
-                pose.rotateAround(new Translation2d(layout.getFieldLength()/2.0, layout.getFieldWidth()/2.0), Rotation2d.k180deg);
+        return (m_alliance == Alliance.Red) ? pose
+                : pose.rotateAround(new Translation2d(layout.getFieldLength() / 2.0, layout.getFieldWidth() / 2.0),
+                        Rotation2d.k180deg);
     }
 
     public Pose2d bluePoseToAlliancePose(Pose2d pose) {
         AprilTagFieldLayout layout = Constants.VisionConstants.kTagLayout;
-        return (m_alliance == Alliance.Blue) ? pose :
-                pose.rotateAround(new Translation2d(layout.getFieldLength()/2.0, layout.getFieldWidth()/2.0), Rotation2d.k180deg);
+        return (m_alliance == Alliance.Blue) ? pose
+                : pose.rotateAround(new Translation2d(layout.getFieldLength() / 2.0, layout.getFieldWidth() / 2.0),
+                        Rotation2d.k180deg);
     }
 
     public enum GameState {
@@ -160,7 +174,7 @@ public class FieldUtils{
         AutoWinner winner = getAutoWinner();
         GameState firstTeamHub;
         GameState secondTeamHub;
-        if (winner == AutoWinner.RED){
+        if (winner == AutoWinner.RED) {
             firstTeamHub = GameState.BLUE_START;
             secondTeamHub = GameState.RED_START;
         } else if (winner == AutoWinner.BLUE) {
@@ -171,7 +185,7 @@ public class FieldUtils{
             secondTeamHub = null;
         }
 
-        if (time > 0 && time < 20){
+        if (time > 0 && time < 20) {
             return GameState.AUTO;
         } else if (time < 30) {
             return GameState.TRANSITION;
@@ -199,63 +213,57 @@ public class FieldUtils{
             matchTime = Timer.getFPGATimestamp();
         }
 
-        if (matchTime<20) return 20-matchTime;
-        if (matchTime<30) return 30-matchTime;
-        if (matchTime<55) return 55-matchTime;
-        if (matchTime<80) return 80-matchTime;
-        if (matchTime<105) return 105-matchTime;
-        if (matchTime<130) return 130-matchTime;
-        return 160-matchTime;
+        if (matchTime < 20)
+            return 20 - matchTime;
+        if (matchTime < 30)
+            return 30 - matchTime;
+        if (matchTime < 55)
+            return 55 - matchTime;
+        if (matchTime < 80)
+            return 80 - matchTime;
+        if (matchTime < 105)
+            return 105 - matchTime;
+        if (matchTime < 130)
+            return 130 - matchTime;
+        return 160 - matchTime;
     }
 
-    public boolean inTrenchZone(Pose2d robotPose, double xVelocity)
-    {
+    public boolean inTrenchZone(Pose2d robotPose, double xVelocity) {
         double redTrenchZoneMin = c_fieldLength - c_trenchToDriverStationM - c_trenchZoneBaseWidthMeters;
         double redTrenchZoneMax = c_fieldLength - c_trenchToDriverStationM + c_trenchZoneBaseWidthMeters;
         double blueTrenchZoneMin = c_trenchToDriverStationM - c_trenchZoneBaseWidthMeters;
         double blueTrenchZoneMax = c_trenchToDriverStationM + c_trenchZoneBaseWidthMeters;
 
-        if(xVelocity > 0)
-        {
+        if (xVelocity > 0) {
             blueTrenchZoneMin -= (xVelocity * c_trenchZoneVelocityScaling);
             redTrenchZoneMin -= (xVelocity * c_trenchZoneVelocityScaling);
-        }
-        else
-        {
+        } else {
             blueTrenchZoneMax += (Math.abs(xVelocity) * c_trenchZoneVelocityScaling);
             redTrenchZoneMax += (Math.abs(xVelocity) * c_trenchZoneVelocityScaling);
         }
 
         double x = robotPose.getX();
         double y = robotPose.getY();
-        return (
-            (
-                (x > redTrenchZoneMin && x < redTrenchZoneMax)
-                || (x > blueTrenchZoneMin && x < blueTrenchZoneMax)
-            ) &&
-            (
-                (y < c_trenchWidthMeters)
-                || ( y > c_fieldWidth - c_trenchWidthMeters)
-            )
-        );
+        return (((x > redTrenchZoneMin && x < redTrenchZoneMax)
+                || (x > blueTrenchZoneMin && x < blueTrenchZoneMax)) &&
+                ((y < c_trenchWidthMeters)
+                        || (y > c_fieldWidth - c_trenchWidthMeters)));
     }
 
-    // Designates how wide of an area around the trench we want to designate as the "trench zone"
+    // Designates how wide of an area around the trench we want to designate as the
+    // "trench zone"
     private final double c_trenchZoneBaseWidthMeters = 0.25;
     private final double c_trenchZoneVelocityScaling = 0.75;
 
     private final double c_fieldLength = Constants.VisionConstants.kTagLayout.getFieldLength();
     private final double c_fieldWidth = Constants.VisionConstants.kTagLayout.getFieldWidth();
-    private final double c_trenchWidthMeters = Units.inchesToMeters(62.65); 
+    private final double c_trenchWidthMeters = Units.inchesToMeters(62.65);
     private final double c_trenchToDriverStationM = Units.inchesToMeters(182.11);
 
-    public boolean isInField(Pose2d pose)
-    {
-        return (
-            pose.getX() > 0 && 
-            pose.getX() < c_fieldLength &&
-            pose.getY() > 0 &&
-            pose.getY() > c_fieldWidth
-        );
+    public boolean isInField(Pose2d pose) {
+        return (pose.getX() > 0 &&
+                pose.getX() < c_fieldLength &&
+                pose.getY() > 0 &&
+                pose.getY() > c_fieldWidth);
     }
 }

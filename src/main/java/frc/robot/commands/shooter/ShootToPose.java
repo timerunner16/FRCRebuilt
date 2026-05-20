@@ -53,11 +53,10 @@ public class ShootToPose extends Command {
     private final VelocityMapping m_overrideVMap;
 
     private static final Map<Double, Double> DEFAULT_ANGLEMAP = Map.of(
-        0.0, Math.toRadians(65),
-        2.7, Math.toRadians(65),
-        2.71, Math.toRadians(60),
-        16.0, Math.toRadians(60)
-    );
+            0.0, Math.toRadians(65),
+            2.7, Math.toRadians(65),
+            2.71, Math.toRadians(60),
+            16.0, Math.toRadians(60));
 
     private static final int ITERATIONS = 20;
     private static final double ERROR_THRESHOLD = 1e-2;
@@ -68,7 +67,12 @@ public class ShootToPose extends Command {
         this(targetSupplier, DEFAULT_ANGLEMAP, null);
     }
 
-    public ShootToPose(Supplier<Pose3d> targetSupplier, Map<Double, Double> distAngleMap, VelocityMapping overrideVMap) {
+    public ShootToPose(Supplier<Pose3d> targetSupplier, VelocityMapping overrideVMap) {
+        this(targetSupplier, DEFAULT_ANGLEMAP, overrideVMap);
+    }
+
+    public ShootToPose(Supplier<Pose3d> targetSupplier, Map<Double, Double> distAngleMap,
+            VelocityMapping overrideVMap) {
         super(Shooter.getInstance(), "Targeted Shooting", "ShootToPose");
 
         m_Shooter = Shooter.getInstance();
@@ -91,29 +95,29 @@ public class ShootToPose extends Command {
             m_chassisVelocityLogger = StructLogger.translation3dLogger(m_Shooter, "ChassisVelocity", null);
         }
 
-
         Configuration cfg = Configuration.getInstance();
         m_chassisToTurret = new Transform3d(
-            new Pose3d(),
-            new Pose3d(
-                new Translation3d(
-                    cfg.getDouble("Shooter", "turretPositionX"),
-                    cfg.getDouble("Shooter", "turretPositionY"),
-                    cfg.getDouble("Shooter", "turretPositionZ")
-                ), Rotation3d.kZero)
-        );
+                new Pose3d(),
+                new Pose3d(
+                        new Translation3d(
+                                cfg.getDouble("Shooter", "turretPositionX"),
+                                cfg.getDouble("Shooter", "turretPositionY"),
+                                cfg.getDouble("Shooter", "turretPositionZ")),
+                        Rotation3d.kZero));
 
         // Drive/Vision isn't a requirement - it's used for reading only
         addRequirements(m_Shooter);
     }
 
-    @Override 
-    public void initialize() {}
+    @Override
+    public void initialize() {
+    }
 
     @Override
     public void execute() {
         Pose3d target = m_targetSupplier.get();
-        if (target == null) return;
+        if (target == null)
+            return;
 
         Pose3d turretPose;
         if (Robot.isSimulation()) {
@@ -123,7 +127,8 @@ public class ShootToPose extends Command {
             turretPose = m_Shooter.getTurretPose();
         }
 
-        ChassisSpeeds chassisSpeeds = ChassisSpeeds.fromRobotRelativeSpeeds(m_Drive.getMeasuredSpeeds(), m_Drive.getPose().getRotation());
+        ChassisSpeeds chassisSpeeds = ChassisSpeeds.fromRobotRelativeSpeeds(m_Drive.getMeasuredSpeeds(),
+                m_Drive.getPose().getRotation());
 
         TrajectoryConditions conditions = new TrajectoryConditions();
         TrajectoryParameters params = null;
@@ -131,37 +136,42 @@ public class ShootToPose extends Command {
         for (int i = 0; i < ITERATIONS; i++) {
             Translation3d compensatingTarget;
             if (params != null) {
-                Twist2d twist = m_Drive.getFieldRelativeTwist(params.time);//chassisSpeeds.toTwist2d(params.time);
-                compensatingTarget = target.exp(new Twist3d(-twist.dx, -twist.dy, 0, 0, 0, -twist.dtheta)).getTranslation();
+                Twist2d twist = m_Drive.getFieldRelativeTwist(params.time);// chassisSpeeds.toTwist2d(params.time);
+                compensatingTarget = target.exp(new Twist3d(-twist.dx, -twist.dy, 0, 0, 0, -twist.dtheta))
+                        .getTranslation();
             } else {
                 compensatingTarget = target.getTranslation();
             }
 
-            double dist = turretPose.getTranslation().toTranslation2d().getDistance(compensatingTarget.toTranslation2d());
+            double dist = turretPose.getTranslation().toTranslation2d()
+                    .getDistance(compensatingTarget.toTranslation2d());
             double angle = m_distAngleMap.get(dist);
-            
+
             conditions.launch = turretPose.getTranslation();
             conditions.target = compensatingTarget;
             conditions.theta_pitch = angle;
             conditions.compensate_for_velocity = false;
-            
+
             TrajectoryParameters newParams = TrajectorySolver.solveTrajectory(conditions);
-            
-            if (Double.isNaN(newParams.time)) break;
+
+            if (Double.isNaN(newParams.time))
+                break;
 
             double error = Double.MAX_VALUE;
             if (params != null) {
-                error = (params.time-newParams.time)/(newParams.time)
-                      + (params.theta_pitch-newParams.theta_pitch)/(newParams.theta_pitch)
-                      + (params.theta_yaw-newParams.theta_yaw)/(newParams.theta_yaw);
+                error = (params.time - newParams.time) / (newParams.time)
+                        + (params.theta_pitch - newParams.theta_pitch) / (newParams.theta_pitch)
+                        + (params.theta_yaw - newParams.theta_yaw) / (newParams.theta_yaw);
             }
             System.out.println("Iteration: " + i + "; Error: " + error);
             params = newParams;
 
-            if (Math.abs(error) < ERROR_THRESHOLD) break;
+            if (Math.abs(error) < ERROR_THRESHOLD)
+                break;
         }
 
-        if (params == null) return;
+        if (params == null)
+            return;
 
         double turretYaw = params.theta_yaw;
         double hoodTarget = m_Shooter.pitchToHood(params.theta_pitch);
@@ -173,38 +183,40 @@ public class ShootToPose extends Command {
         m_Shooter.setHoodTarget(hoodTarget);
         m_Shooter.setFlywheelTarget(flywheelRPM);
 
-        // System.out.println(m_Shooter.turretAtTarget() + " " + m_Shooter.flywheelAtTarget() + " " + m_Shooter.hoodAtTarget());
+        // System.out.println(m_Shooter.turretAtTarget() + " " +
+        // m_Shooter.flywheelAtTarget() + " " + m_Shooter.hoodAtTarget());
         if (m_Shooter.flywheelAtTarget() && m_Shooter.hoodAtTarget()) {
-            // LED.getInstance().setPattern(1, LEDPattern.kCheckeredBlinkGreen, Priority.INFO);
+            // LED.getInstance().setPattern(1, LEDPattern.kCheckeredBlinkGreen,
+            // Priority.INFO);
             m_Shooter.chimneySpeed(1);
         } else {
-            // LED.getInstance().setPattern(1, LEDPattern.kCheckeredBlinkYellow, Priority.INFO);
+            // LED.getInstance().setPattern(1, LEDPattern.kCheckeredBlinkYellow,
+            // Priority.INFO);
             m_Shooter.chimneyStop();
         }
 
         if (RobotBase.isSimulation()) {
-            Translation3d baseBallVelocity = new Translation3d(params.velocity,0,0).rotateBy(new Rotation3d(
-                0,
-                -params.theta_pitch,
-                params.theta_yaw
-            ));
+            Translation3d baseBallVelocity = new Translation3d(params.velocity, 0, 0).rotateBy(new Rotation3d(
+                    0,
+                    -params.theta_pitch,
+                    params.theta_yaw));
 
             Translation3d correctedTarget = conditions.target;
 
             m_ballPositions.clear();
             for (int i = 0; i < DISPLAY_RES; i++) {
-                double t = params.time*((double)i/(DISPLAY_RES-1));
+                double t = params.time * ((double) i / (DISPLAY_RES - 1));
 
                 Translation3d targetBallOffset = baseBallVelocity
-                    .times(t)
-                    .plus(new Translation3d(0, 0, -4.9*t*t));
+                        .times(t)
+                        .plus(new Translation3d(0, 0, -4.9 * t * t));
                 m_ballPositions.add(conditions.launch.plus(targetBallOffset));
 
                 // Translation3d physBallOffset = baseBallVelocity
-                //     .plus(new Translation3d(chassisVelocity))
-                //     .plus(new Translation3d(angLinVel))
-                //     .times(t)
-                //     .plus(new Translation3d(0, 0, -4.9*t*t));
+                // .plus(new Translation3d(chassisVelocity))
+                // .plus(new Translation3d(angLinVel))
+                // .times(t)
+                // .plus(new Translation3d(0, 0, -4.9*t*t));
                 // m_ballPositions.add(conditions.launch.plus(physBallOffset));
             }
 
@@ -234,8 +246,9 @@ public class ShootToPose extends Command {
         m_Shooter.chimneyStop();
     }
 
-    public static ShootToPose withFixedValues(Supplier<Pose3d> targetSupplier, double angle, VelocityMapping overrideVelocityMapping) {
-        return new ShootToPose(targetSupplier, Map.of(0.0,angle), overrideVelocityMapping);
+    public static ShootToPose withFixedValues(Supplier<Pose3d> targetSupplier, double angle,
+            VelocityMapping overrideVelocityMapping) {
+        return new ShootToPose(targetSupplier, Map.of(0.0, angle), overrideVelocityMapping);
     }
 
     public static ShootToPose hubTargetting() {
