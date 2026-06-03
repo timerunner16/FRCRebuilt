@@ -43,10 +43,10 @@ import frc.robot.utils.TriggerBuilder;
 import frc.robot.utils.FieldUtils;
 import frc.robot.utils.Referrable;
 import frc.robot.utils.drive.SwerveDriveInputs;
+import frc.robot.utils.trajectory.VelocityMapping;
 import frc.robot.utils.TriggerBuilder.RumbleIndicator;
 import frc.robot.utils.TriggerBuilder.PrintIndicator;
 import frc.robot.utils.TriggerBuilder.SwitchIndicator;
-
 
 public class OI {
     private static OI m_OI;
@@ -56,19 +56,21 @@ public class OI {
 
     private SwerveDriveInputs m_driveInputs;
 
-	private enum Submap {
-		DRIVE_SYSID,
-		AUTO,
-		MANUAL;
-	}
+    private enum Submap {
+        DRIVE_SYSID,
+        AUTO,
+        MANUAL;
+    }
 
-	private final Referrable<Submap> m_operatorSubmap = new Referrable<Submap>(Submap.AUTO);
-	private final Referrable<Submap> m_driverSubmap = new Referrable<Submap>(Submap.AUTO);
+    private final Referrable<Submap> m_operatorSubmap = new Referrable<Submap>(Submap.AUTO);
+    private final Referrable<Submap> m_driverSubmap = new Referrable<Submap>(Submap.AUTO);
 
-	//private final TDSendable m_operatorSubmapSendable = new TDSendable(OI, null, null, getDriverController())
+    // private final TDSendable m_operatorSubmapSendable = new TDSendable(OI, null,
+    // null, getDriverController())
 
     public static OI getInstance() {
-        if (m_OI == null) m_OI = new OI();
+        if (m_OI == null)
+            m_OI = new OI();
         return m_OI;
     }
 
@@ -82,235 +84,299 @@ public class OI {
             xInput = m_driverXboxController::getLeftY;
             yInput = m_driverXboxController::getLeftX;
         } else {
-            xInput = ()->-m_driverXboxController.getLeftX();
+            xInput = () -> -m_driverXboxController.getLeftX();
             yInput = m_driverXboxController::getLeftY;
         }
-        m_driveInputs = new SwerveDriveInputs(xInput, yInput, m_driverXboxController::getRightX);
+        m_driveInputs = new SwerveDriveInputs(xInput, yInput, () -> m_driverXboxController.getRightX());
     }
 
-	public void bindControls() {
-		switch (Constants.CONTROLLER_LAYOUT) {
-			case COMPETITION:
-				bindCompetitionLayout(m_driverXboxController, m_operatorXboxController);
-				break;
-			case DEBUG:
-				bindDebugLayout(m_driverXboxController);
-				break;
-			case DEMO2:
-				bindDemo2Layout(m_driverXboxController, m_operatorXboxController);
-				break;
-		}
+    public void bindControls() {
+        switch (Constants.CONTROLLER_LAYOUT) {
+            case COMPETITION:
+                bindCompetitionLayout(m_driverXboxController, m_operatorXboxController);
+                break;
+            case DEBUG:
+                bindDebugLayout(m_driverXboxController);
+                break;
+            case DEMO2:
+                bindDemo2Layout(m_driverXboxController, m_operatorXboxController);
+                break;
+            case TRASH:
+                bindTrashLayout(m_driverXboxController);
+                break;
+        }
     }
-	
-	public void bindCompetitionLayout(CommandXboxController driver, CommandXboxController operator) {
-		SwitchIndicator driverIndicator = new RumbleIndicator(driver.getHID());
-		new TriggerBuilder<>(m_driverSubmap)
-			.onTrue(driver.back(), new InstantCommand(()->Drive.getInstance().zeroHeading()))
 
-			.beginSubmap(Submap.AUTO)
-				.whileTrue(driver.leftBumper(), new IntakeIn())
-				.whileTrue(driver.povUp(), new IntakeOscillate())
-				.whileTrue(driver.rightBumper(), new IntakeAAAAA())
-				.whileTrue(driver.b(), new DeployerOut())
-				.whileTrue(driver.rightTrigger(), new DeployerIn())
+    public void bindCompetitionLayout(CommandXboxController driver, CommandXboxController operator) {
+        SwitchIndicator driverIndicator = new RumbleIndicator(driver.getHID());
+        new TriggerBuilder<>(m_driverSubmap)
+                .onTrue(driver.back(), new InstantCommand(() -> Drive.getInstance().zeroHeading()))
 
-				.whileTrue(driver.leftTrigger(), new SlowSwerveDrive(m_driveInputs))
+                .beginSubmap(Submap.AUTO)
+                .whileTrue(driver.leftBumper(), new IntakeIn())
+                .whileTrue(driver.povUp(), new IntakeOscillate())
+                .whileTrue(driver.rightBumper(), new IntakeAAAAA())
+                .whileTrue(driver.b(), new DeployerOut())
+                .whileTrue(driver.rightTrigger(), new DeployerIn())
 
-				.switchSubmap(driverIndicator, driver.start(), Submap.MANUAL)
-			.endSubmap()
+                .whileTrue(driver.leftTrigger(), new SlowSwerveDrive(m_driveInputs))
 
-			.beginSubmap(Submap.MANUAL)
-				.switchSubmap(driverIndicator, driver.start(), Submap.AUTO)
-			.endSubmap()
+                .switchSubmap(driverIndicator, driver.start(), Submap.MANUAL)
+                .endSubmap()
 
-			.register();
+                .beginSubmap(Submap.MANUAL)
+                .switchSubmap(driverIndicator, driver.start(), Submap.AUTO)
+                .endSubmap()
 
-		SwitchIndicator operatorIndicator = new RumbleIndicator(operator.getHID());
-		new TriggerBuilder<Submap>(m_operatorSubmap)
-			.beginSubmap(Submap.AUTO)
-				.whileTrue(operator.rightBumper(), Commands.parallel(new SpindexerSpin(), new ChimneyUp()))
+                .register();
 
-				.whileTrue(operator.leftBumper(), Commands.parallel(new SpindexerReverse(), new ChimneyDown()))
+        SwitchIndicator operatorIndicator = new RumbleIndicator(operator.getHID());
+        new TriggerBuilder<Submap>(m_operatorSubmap)
+                .beginSubmap(Submap.AUTO)
+                .whileTrue(operator.rightBumper(), new SpindexerSpin())
+                .whileTrue(operator.leftBumper(), new SpindexerReverse())
 
-				// midfield
-				.whileTrue(operator.povUp(), new ShootMap(
-					new ShootMap.ShootMapSetpoint(new Pose2d(new Translation2d(2.5,4), Rotation2d.kZero), 3000, -18, 0),
-					new ShootMap.ShootMapSetpoint(new Pose2d(new Translation2d(2.5,4), Rotation2d.kZero), 3000, -18, 0),
-					Alliance.Blue,
-					ShootMap.Target.SHOOT_HUB
-				))
-				// left trench
-				.whileTrue(operator.povUpLeft(), new ShootMap(
-					new ShootMap.ShootMapSetpoint(new Pose2d(new Translation2d(4.32,7.5), Rotation2d.kCW_90deg), 3000, -21.8, 0.13),
-					new ShootMap.ShootMapSetpoint(new Pose2d(new Translation2d(4.32,7.5), Rotation2d.kCW_90deg), 3000, -21.8, 0.13),
-					Alliance.Blue,
-					ShootMap.Target.SHOOT_HUB
-				))
-				// right trench
-				.whileTrue(operator.povUpRight(), new ShootMap(
-					new ShootMap.ShootMapSetpoint(new Pose2d(new Translation2d(4.32,7.5), Rotation2d.kCCW_90deg), 3000, -21.8, -0.35),
-					new ShootMap.ShootMapSetpoint(new Pose2d(new Translation2d(4.32,7.5), Rotation2d.kCCW_90deg), 3000, -21.8, -0.35),
-					Alliance.Blue,
-					ShootMap.Target.SHOOT_HUB
-				))
+                .whileTrue(operator.rightTrigger(), Commands.run(() -> {
+                        Shooter.getInstance().setFlywheelBoost(
+                                Shooter.getInstance().getFlywheelBoost() + 0.01
+                        );
+                }))
 
-				// ladder
-				.whileTrue(operator.povDown(), new ShootMap(
-					new ShootMap.ShootMapSetpoint(new Pose2d(new Translation2d(1.5,4), Rotation2d.kZero), 3100, -25, 0),
-					new ShootMap.ShootMapSetpoint(new Pose2d(new Translation2d(1.5,4), Rotation2d.kZero), 3100, -25, 0),
-					Alliance.Blue,
-					ShootMap.Target.SHOOT_HUB
-				))
-				// left corner
-				.whileTrue(operator.povDownLeft(), new ShootMap(
-					new ShootMap.ShootMapSetpoint(new Pose2d(new Translation2d(0.5,7.5), Rotation2d.kZero), 3400, -35, -0.77),
-					new ShootMap.ShootMapSetpoint(new Pose2d(new Translation2d(0.5,7.5), Rotation2d.kZero), 3400, -35, -0.77),
-					Alliance.Blue,
-					ShootMap.Target.SHOOT_HUB
-				))
-				// right corner
-				.whileTrue(operator.povDownRight(), new ShootMap(
-					new ShootMap.ShootMapSetpoint(new Pose2d(new Translation2d(0.5,0.5), Rotation2d.kZero), 3400, -35, 0.59),
-					new ShootMap.ShootMapSetpoint(new Pose2d(new Translation2d(0.5,0.5), Rotation2d.kZero), 3400, -35, 0.59),
-					Alliance.Blue,
-					ShootMap.Target.SHOOT_HUB
-				))
+                .whileTrue(operator.leftTrigger(), Commands.run(() -> {
+                        Shooter.getInstance().setFlywheelBoost(
+                                Shooter.getInstance().getFlywheelBoost() - 0.01
+                        );
+                }))
 
-				// ferry 0
-				.whileTrue(operator.y(), new ShootMap(
-					new ShootMap.ShootMapSetpoint(new Pose2d(Translation2d.kZero, Rotation2d.kZero), 6000, -40, 0),
-					new ShootMap.ShootMapSetpoint(new Pose2d(Translation2d.kZero, Rotation2d.kZero), 6000, -40, 0),
-					Alliance.Blue,
-					ShootMap.Target.FERRY
-				))
-				// ferry clockwise 90
-				/*.whileTrue(operator.b(), new ShootMap(
-					new ShootMap.ShootMapSetpoint(new Pose2d(Translation2d.kZero, Rotation2d.kCW_90deg), 6000, -40, Math.PI/2),
-					new ShootMap.ShootMapSetpoint(new Pose2d(Translation2d.kZero, Rotation2d.kCW_90deg), 6000, -40, Math.PI/2),
-					Alliance.Blue,
-					ShootMap.Target.FERRY
-				))*/
-				// ferry counter clockwise 90
-				/*.whileTrue(operator.x(), new ShootMap(
-					new ShootMap.ShootMapSetpoint(new Pose2d(Translation2d.kZero, Rotation2d.kCCW_90deg), 6000, -40, -Math.PI/2),
-					new ShootMap.ShootMapSetpoint(new Pose2d(Translation2d.kZero, Rotation2d.kCCW_90deg), 6000, -40, -Math.PI/2),
-					Alliance.Blue,
-					ShootMap.Target.FERRY
-				))*/
-				// low power loser ferry
-				.whileTrue(operator.b(), new ShootMap(
-					new ShootMap.ShootMapSetpoint(new Pose2d(Translation2d.kZero, Rotation2d.kZero), 4500, -40, -Math.PI/2),
-					new ShootMap.ShootMapSetpoint(new Pose2d(Translation2d.kZero, Rotation2d.kZero), 4500, -40, -Math.PI/2),
-					Alliance.Blue,
-					ShootMap.Target.FERRY
-				))
+                // midfield
+                .whileTrue(operator.povUp(), new ShootMap(
+                        new ShootMap.ShootMapSetpoint(new Pose2d(new Translation2d(2.5, 4), Rotation2d.kZero), 3000,
+                                -18, 0),
+                        new ShootMap.ShootMapSetpoint(new Pose2d(new Translation2d(2.5, 4), Rotation2d.kZero), 3000,
+                                -18, 0),
+                        Alliance.Blue,
+                        ShootMap.Target.SHOOT_HUB))
+                // left trench
+                .whileTrue(operator.povUpLeft(), new ShootMap(
+                        new ShootMap.ShootMapSetpoint(new Pose2d(new Translation2d(4.32, 7.5), Rotation2d.kCW_90deg),
+                                3000, -21.8, 0.13),
+                        new ShootMap.ShootMapSetpoint(new Pose2d(new Translation2d(4.32, 7.5), Rotation2d.kCW_90deg),
+                                3000, -21.8, 0.13),
+                        Alliance.Blue,
+                        ShootMap.Target.SHOOT_HUB))
+                // right trench
+                .whileTrue(operator.povUpRight(), new ShootMap(
+                        new ShootMap.ShootMapSetpoint(new Pose2d(new Translation2d(4.32, 7.5), Rotation2d.kCCW_90deg),
+                                3000, -21.8, -0.35),
+                        new ShootMap.ShootMapSetpoint(new Pose2d(new Translation2d(4.32, 7.5), Rotation2d.kCCW_90deg),
+                                3000, -21.8, -0.35),
+                        Alliance.Blue,
+                        ShootMap.Target.SHOOT_HUB))
 
-				.whileTrue(operator.a(), new ShootToPose(FieldUtils.getInstance()::getHubPose))
+                // ladder
+                .whileTrue(operator.povDown(), new ShootMap(
+                        new ShootMap.ShootMapSetpoint(new Pose2d(new Translation2d(1.5, 4), Rotation2d.kZero), 3100,
+                                -25, 0),
+                        new ShootMap.ShootMapSetpoint(new Pose2d(new Translation2d(1.5, 4), Rotation2d.kZero), 3100,
+                                -25, 0),
+                        Alliance.Blue,
+                        ShootMap.Target.SHOOT_HUB))
+                // left corner
+                .whileTrue(operator.povDownLeft(), new ShootMap(
+                        new ShootMap.ShootMapSetpoint(new Pose2d(new Translation2d(0.5, 7.5), Rotation2d.kZero), 3400,
+                                -35, -0.77),
+                        new ShootMap.ShootMapSetpoint(new Pose2d(new Translation2d(0.5, 7.5), Rotation2d.kZero), 3400,
+                                -35, -0.77),
+                        Alliance.Blue,
+                        ShootMap.Target.SHOOT_HUB))
+                // right corner
+                .whileTrue(operator.povDownRight(), new ShootMap(
+                        new ShootMap.ShootMapSetpoint(new Pose2d(new Translation2d(0.5, 0.5), Rotation2d.kZero), 3400,
+                                -35, 0.59),
+                        new ShootMap.ShootMapSetpoint(new Pose2d(new Translation2d(0.5, 0.5), Rotation2d.kZero), 3400,
+                                -35, 0.59),
+                        Alliance.Blue,
+                        ShootMap.Target.SHOOT_HUB))
 
-				.whileTrue(operator.x(), new FerryShoot())
+                // ferry 0
+                .whileTrue(operator.y(), new ShootMap(
+                        new ShootMap.ShootMapSetpoint(new Pose2d(Translation2d.kZero, Rotation2d.kZero), 6000, -40, 0),
+                        new ShootMap.ShootMapSetpoint(new Pose2d(Translation2d.kZero, Rotation2d.kZero), 6000, -40, 0),
+                        Alliance.Blue,
+                        ShootMap.Target.FERRY))
+                // ferry clockwise 90
+                /*
+                 * .whileTrue(operator.b(), new ShootMap(
+                 * new ShootMap.ShootMapSetpoint(new Pose2d(Translation2d.kZero,
+                 * Rotation2d.kCW_90deg), 6000, -40, Math.PI/2),
+                 * new ShootMap.ShootMapSetpoint(new Pose2d(Translation2d.kZero,
+                 * Rotation2d.kCW_90deg), 6000, -40, Math.PI/2),
+                 * Alliance.Blue,
+                 * ShootMap.Target.FERRY
+                 * ))
+                 */
+                // ferry counter clockwise 90
+                /*
+                 * .whileTrue(operator.x(), new ShootMap(
+                 * new ShootMap.ShootMapSetpoint(new Pose2d(Translation2d.kZero,
+                 * Rotation2d.kCCW_90deg), 6000, -40, -Math.PI/2),
+                 * new ShootMap.ShootMapSetpoint(new Pose2d(Translation2d.kZero,
+                 * Rotation2d.kCCW_90deg), 6000, -40, -Math.PI/2),
+                 * Alliance.Blue,
+                 * ShootMap.Target.FERRY
+                 * ))
+                 */
+                // low power loser ferry
+                .whileTrue(operator.b(), new ShootMap(
+                        new ShootMap.ShootMapSetpoint(new Pose2d(Translation2d.kZero, Rotation2d.kZero), 4500, -40,
+                                -Math.PI / 2),
+                        new ShootMap.ShootMapSetpoint(new Pose2d(Translation2d.kZero, Rotation2d.kZero), 4500, -40,
+                                -Math.PI / 2),
+                        Alliance.Blue,
+                        ShootMap.Target.FERRY))
 
-				.switchSubmap(operatorIndicator, operator.start(), Submap.MANUAL)
-			.endSubmap()
+                .whileTrue(operator.a(), new ShootToPose(FieldUtils.getInstance()::getHubPose))
 
-			.beginSubmap(Submap.MANUAL)
-				.onTrue(operator.a(), Commands.runOnce(()->{Shooter.getInstance().setTurretRobotRelative(true);}, Shooter.getInstance()))
-				.onTrue(operator.y(), Commands.runOnce(()->{Shooter.getInstance().setTurretRobotRelative(false);}, Shooter.getInstance()))
-				.onTrue(operator.x(), new StopTurretCalibration())
-				.onTrue(operator.b(), new CalibrateTurretFull())
+                .whileTrue(operator.x(), new FerryShoot())
 
+                .switchSubmap(operatorIndicator, operator.start(), Submap.MANUAL)
+                .endSubmap()
 
-				.whileTrue(operator.rightTrigger(), Commands.parallel(
-					new ChimneyUp(),
-					new SpindexerSpin()
-				))
-				.whileTrue(operator.leftTrigger(), Commands.parallel(
-					new ChimneyDown(),
-					new SpindexerReverse()
-				))
+                .beginSubmap(Submap.MANUAL)
+                .onTrue(operator.a(), Commands.runOnce(() -> {
+                    Shooter.getInstance().setTurretRobotRelative(true);
+                }, Shooter.getInstance()))
+                .onTrue(operator.y(), Commands.runOnce(() -> {
+                    Shooter.getInstance().setTurretRobotRelative(false);
+                }, Shooter.getInstance()))
+                .onTrue(operator.x(), new StopTurretCalibration())
+                .onTrue(operator.b(), new CalibrateTurretFull())
 
+                .map(operator.povUp(), new RealManualTurretControl(), Trigger::toggleOnTrue)
+                .map(operator.povLeft(), new ManualShooterControl(), Trigger::toggleOnTrue)
 
-				.map(operator.povUp(), new RealManualTurretControl(), Trigger::toggleOnTrue)
-				.map(operator.povLeft(), new ManualShooterControl(), Trigger::toggleOnTrue)
+                .onTrue(operator.povDown(), Commands.runOnce(() -> {
+                    Shooter.getInstance().forceTurretZero();
+                }, Shooter.getInstance()))
 
-				.onTrue(operator.povDown(), Commands.runOnce(()->{Shooter.getInstance().forceTurretZero();}, Shooter.getInstance()))
+                .switchSubmap(operatorIndicator, operator.start(), Submap.AUTO)
+                .endSubmap()
 
-				.switchSubmap(operatorIndicator, operator.start(), Submap.AUTO)
-			.endSubmap()
+                .register();
+    }
 
-			.register();
-	}
+    public void bindDebugLayout(CommandXboxController driver) {
+        SwitchIndicator driverIndicator = new RumbleIndicator(driver.getHID());
+        new TriggerBuilder<>(m_driverSubmap)
+                .beginSubmap(Submap.DRIVE_SYSID)
+                .whileTrue(driver.x(), Drive.getInstance().sysIdQuasistatic(Direction.kForward))
+                .whileTrue(driver.a(), Drive.getInstance().sysIdQuasistatic(Direction.kReverse))
+                .whileTrue(driver.y(), Drive.getInstance().sysIdDynamic(Direction.kForward))
+                .whileTrue(driver.b(), Drive.getInstance().sysIdDynamic(Direction.kReverse))
 
-	public void bindDebugLayout(CommandXboxController driver) {
-		SwitchIndicator driverIndicator = new RumbleIndicator(driver.getHID());
-		new TriggerBuilder<>(m_driverSubmap)
-			.beginSubmap(Submap.DRIVE_SYSID)
-				.whileTrue(driver.x(), Drive.getInstance().sysIdQuasistatic(Direction.kForward))
-				.whileTrue(driver.a(), Drive.getInstance().sysIdQuasistatic(Direction.kReverse))
-				.whileTrue(driver.y(), Drive.getInstance().sysIdDynamic(Direction.kForward))
-				.whileTrue(driver.b(), Drive.getInstance().sysIdDynamic(Direction.kReverse))
+                .switchSubmap(driverIndicator, driver.start(), Submap.AUTO)
+                .endSubmap()
 
-				.switchSubmap(driverIndicator, driver.start(), Submap.AUTO)
-			.endSubmap()
+                .onTrue(driver.back(), new InstantCommand(() -> Drive.getInstance().zeroHeading()))
 
-			.onTrue(driver.back(), new InstantCommand(()->Drive.getInstance().zeroHeading()))
+                .beginSubmap(Submap.AUTO)
+                .whileTrue(driver.leftBumper(), new IntakeIn())
+                .whileTrue(driver.povUp(), new IntakeOscillate())
+                .whileTrue(driver.rightBumper(), new IntakeAAAAA())
+                .whileTrue(driver.povLeft(), new DeployerIn())
+                .whileTrue(driver.povRight(), new DeployerOut())
 
-			.beginSubmap(Submap.AUTO)
-				.whileTrue(driver.leftBumper(), new IntakeIn())
-				.whileTrue(driver.povUp(), new IntakeOscillate())
-				.whileTrue(driver.rightBumper(), new IntakeAAAAA())
-				.whileTrue(driver.povLeft(), new DeployerIn())
-				.whileTrue(driver.povRight(), new DeployerOut())
+                .whileTrue(driver.a(), new ShootToPose(FieldUtils.getInstance()::getHubPose))
+                .whileTrue(driver.x(), new FerryShoot())
 
-				.whileTrue(driver.a(), new ShootToPose(FieldUtils.getInstance()::getHubPose))
-				.whileTrue(driver.x(), new FerryShoot())
+                .whileTrue(driver.leftTrigger(), new SlowSwerveDrive(m_driveInputs))
 
-				.whileTrue(driver.leftTrigger(), new SlowSwerveDrive(m_driveInputs))
+                .whileTrue(driver.rightTrigger(), new SpindexerSpin())
 
-				.whileTrue(driver.rightTrigger(), new SpindexerSpin())
+                .switchSubmap(driverIndicator, driver.start(), Submap.MANUAL)
+                .endSubmap()
 
-				.switchSubmap(driverIndicator, driver.start(), Submap.MANUAL)
-			.endSubmap()
+                .beginSubmap(Submap.MANUAL)
+                .onTrue(m_driverXboxController.b(), new CalibrateTurretFull())
+                .onTrue(m_driverXboxController.a(), new HoodCalibrate())
 
-			.beginSubmap(Submap.MANUAL)
-				.onTrue(m_driverXboxController.b(), new CalibrateTurretFull())
-				.onTrue(m_driverXboxController.a(), new HoodCalibrate())
+                .switchSubmap(driverIndicator, driver.start(), Submap.AUTO)
+                .endSubmap()
 
-				.switchSubmap(driverIndicator, driver.start(), Submap.AUTO)
-			.endSubmap()
+                .register();
+    }
 
-			.register();
-	}
+    public void bindTrashLayout(CommandXboxController driver) {
+        SwitchIndicator driverIndicator = new RumbleIndicator(driver.getHID());
+        new TriggerBuilder<>(m_driverSubmap)
+                .beginSubmap(Submap.DRIVE_SYSID)
+                .whileTrue(driver.x(), Drive.getInstance().sysIdQuasistatic(Direction.kForward))
+                .whileTrue(driver.a(), Drive.getInstance().sysIdQuasistatic(Direction.kReverse))
+                .whileTrue(driver.y(), Drive.getInstance().sysIdDynamic(Direction.kForward))
+                .whileTrue(driver.b(), Drive.getInstance().sysIdDynamic(Direction.kReverse))
 
-	public void bindDemo2Layout(CommandXboxController driver, CommandXboxController operator) {
-		new TriggerBuilder<Submap>(m_driverSubmap)
-			.onTrue(driver.back(), new InstantCommand(()->Drive.getInstance().zeroHeading()))
+                .switchSubmap(driverIndicator, driver.start(), Submap.AUTO)
+                .endSubmap()
 
-			.whileTrue(driver.leftBumper(), new IntakeIn())
-			.whileTrue(driver.povUp(), new IntakeOscillate())
-			.whileTrue(driver.rightBumper(), new IntakeAAAAA())
-			.whileTrue(driver.b(), new DeployerOut())
-			.whileTrue(driver.rightTrigger(), new DeployerIn())
+                .onTrue(driver.back(), new InstantCommand(() -> Drive.getInstance().zeroHeading()))
 
-			.whileTrue(driver.leftTrigger(), new SlowSwerveDrive(m_driveInputs))
+                .beginSubmap(Submap.AUTO)
+                .whileTrue(driver.leftBumper(), new IntakeIn())
+                .whileTrue(driver.povUp(), new IntakeOscillate())
+                .whileTrue(driver.rightBumper(), new IntakeAAAAA())
+                .whileTrue(driver.povLeft(), new DeployerIn())
+                .whileTrue(driver.povRight(), new DeployerOut())
 
-			.register();
+                .whileTrue(driver.a(),
+                        new ShootToPose(FieldUtils.getInstance()::getTrashPose,
+                                new VelocityMapping(3.5, 6.0, 1500, 2650)))
+                .whileTrue(driver.x(), new ShootSpecified(7500, -45, 0))
 
-		new TriggerBuilder<Submap>(m_operatorSubmap)
-			.onTrue(operator.b(), new CalibrateTurretFull())
+                .whileTrue(driver.leftTrigger(), new SlowSwerveDrive(m_driveInputs))
 
-			.whileTrue(operator.rightTrigger(), Commands.parallel(
-				new ChimneyUp(),
-				new SpindexerSpin()
-			))
-			.whileTrue(operator.leftTrigger(), Commands.parallel(
-				new ChimneyDown(),
-				new SpindexerReverse()
-			))
+                .whileTrue(driver.rightTrigger(), new SpindexerSpin())
 
-			.map(operator.a(), new ManualShooterControl(), Trigger::toggleOnTrue)
+                .switchSubmap(driverIndicator, driver.start(), Submap.MANUAL)
+                .endSubmap()
 
-			.register();
-	}
+                .beginSubmap(Submap.MANUAL)
+                .onTrue(m_driverXboxController.b(), new CalibrateTurretFull())
+                .onTrue(m_driverXboxController.a(), new HoodCalibrate())
+
+                .switchSubmap(driverIndicator, driver.start(), Submap.AUTO)
+                .endSubmap()
+
+                .register();
+    }
+
+    public void bindDemo2Layout(CommandXboxController driver, CommandXboxController operator) {
+        new TriggerBuilder<Submap>(m_driverSubmap)
+                .onTrue(driver.back(), new InstantCommand(() -> Drive.getInstance().zeroHeading()))
+
+                .whileTrue(driver.leftBumper(), new IntakeIn())
+                .whileTrue(driver.povUp(), new IntakeOscillate())
+                .whileTrue(driver.rightBumper(), new IntakeAAAAA())
+                .whileTrue(driver.b(), new DeployerOut())
+                .whileTrue(driver.rightTrigger(), new DeployerIn())
+
+                .whileTrue(driver.leftTrigger(), new SlowSwerveDrive(m_driveInputs))
+
+                .register();
+
+        new TriggerBuilder<Submap>(m_operatorSubmap)
+                .onTrue(operator.b(), new CalibrateTurretFull())
+
+                .whileTrue(operator.rightTrigger(), Commands.parallel(
+                        new ChimneyUp(),
+                        new SpindexerSpin()))
+                .whileTrue(operator.leftTrigger(), Commands.parallel(
+                        new ChimneyDown(),
+                        new SpindexerReverse()))
+
+                .map(operator.a(), new ManualShooterControl(), Trigger::toggleOnTrue)
+
+                .register();
+    }
 
     public XboxController getDriverController() {
         return m_driverXboxController.getHID();
