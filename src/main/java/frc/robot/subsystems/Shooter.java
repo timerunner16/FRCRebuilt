@@ -88,6 +88,8 @@ public class Shooter extends SubsystemBase {
     private TDNumber m_TDflywheelMeasuredVelocity;
     private TDNumber m_TDflywheelMeasuredCurrent;
 
+    private TDNumber m_flywheelBoost;
+
     // Turret
     private final boolean m_turretEnabled;
 
@@ -276,6 +278,9 @@ public class Shooter extends SubsystemBase {
 
         m_TDflywheelMeasuredVelocity = new TDNumber(this, "Flywheel", "Measured Velocity");
         m_TDflywheelMeasuredCurrent = new TDNumber(this, "Flywheel", "Measured Current");
+
+        m_flywheelBoost = new TDNumber(this, "Flywheel", "RPM Boost");
+        m_flywheelBoost.set(1.0);
     }
 
     private void setupTurret() {
@@ -579,6 +584,14 @@ public class Shooter extends SubsystemBase {
         }
     }
 
+    public void setFlywheelBoost(double boost) {
+        m_flywheelBoost.set(MathUtil.clamp(boost, 0.5, 1.5));
+    }
+
+    public double getFlywheelBoost() {
+        return m_flywheelBoost.get();
+    }
+
     /**
      * Gets a hood angle needed to throw the ball at a given pitch
      * 
@@ -810,6 +823,14 @@ public class Shooter extends SubsystemBase {
         return m_turretPoseEstimator.getEstimatedPosition();
     }
 
+    public void turretOdometryPeriodic() {
+        m_turretPoseEstimator.update(
+            new Rotation3d(0, 0, 
+                (Math.toRadians(m_Drive.getGyroAngle()))),
+            new Rotation2d(m_turretMotor.getEncoder().getPosition()),
+            m_Drive.getModulePositions());
+    }
+
     private void runTurret() {
         m_TDturretMeasuredPosition.set(m_turretMotor.getEncoder().getPosition());
         m_TDturretMeasuredVelocity.set(m_turretMotor.getEncoder().getVelocity());
@@ -871,11 +892,6 @@ public class Shooter extends SubsystemBase {
                 ClosedLoopSlot.kSlot0,
                 turretFF);
 
-        m_turretPoseEstimator.update(
-            new Rotation3d(0, 0, 
-                (Math.toRadians(m_Drive.getGyroAngle()))),
-            new Rotation2d(m_turretMotor.getEncoder().getPosition()),
-            m_Drive.getModulePositions());
         Optional<VisionEstimationResult> result = Vision.getInstance().getLatestFromCamera("TurretCamera");
         if (result.isPresent()) {
             m_turretPoseEstimator.addVisionMeasurement(result.get().estimatedPose, result.get().timestamp);
@@ -1026,13 +1042,21 @@ public class Shooter extends SubsystemBase {
                 m_flywheelFF.setKs(m_TDflywheelKs.get());
             }
 
-            double flywheelSetpoint = m_TDflywheelVelocity.get();
-            if(flywheelSetpoint == 0) {
-                m_flywheelLeftMotor.set(0);
-            } else {
+            double flywheelSetpoint = m_TDflywheelVelocity.get() * m_flywheelBoost.get();
+            if (!m_tuneFlywheel) {
+                if (flywheelSetpoint == 0) flywheelSetpoint = 3000;
+
                 double arbFF = m_flywheelFF.calculate(flywheelSetpoint);
                 m_flywheelLeftMotor.getClosedLoopController().setSetpoint(flywheelSetpoint, ControlType.kVelocity,
                         ClosedLoopSlot.kSlot0, arbFF);
+            } else {
+                if (flywheelSetpoint == 0) {
+                    m_flywheelLeftMotor.set(0);
+                } else {
+                    double arbFF = m_flywheelFF.calculate(flywheelSetpoint);
+                    m_flywheelLeftMotor.getClosedLoopController().setSetpoint(flywheelSetpoint, ControlType.kVelocity,
+                            ClosedLoopSlot.kSlot0, arbFF);
+                }
             }
 
             m_TDflywheelMeasuredVelocity.set(m_flywheelLeftMotor.getEncoder().getVelocity());

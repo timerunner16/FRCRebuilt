@@ -23,19 +23,23 @@ public class ShootSpecified extends Command {
     }
 
     @Override
-    public void initialize() {}
+    public void initialize() {
+        m_Shooter.setTurretRobotRelative(true);
+    }
     
     @Override
     public void execute() {
         m_Shooter.setFlywheelTarget(m_flywheel);
         m_Shooter.setHoodTarget(m_hood);
         m_Shooter.setTurretTarget(m_turret, 0);
+        m_Shooter.chimneySpeed(1.0);
     }
 
     @Override
     public void end(boolean interrupted) {
         m_Shooter.setHoodTarget(0);
         m_Shooter.setFlywheelTarget(0);
+        m_Shooter.setTurretRobotRelative(false);
     }
 
     @Override

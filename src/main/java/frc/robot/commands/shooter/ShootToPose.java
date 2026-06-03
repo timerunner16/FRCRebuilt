@@ -111,6 +111,7 @@ public class ShootToPose extends Command {
 
     @Override
     public void initialize() {
+        m_Shooter.setFlywheelBoost(1.0);
     }
 
     @Override
