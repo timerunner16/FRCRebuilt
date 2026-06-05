@@ -13,6 +13,7 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
+import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
 import frc.robot.utils.Configuration;
 import frc.robot.utils.trajectory.InterpolatingVelocityMap;
@@ -32,7 +33,7 @@ public final class Constants {
         TRASH
     }
 
-    public static final ControllerLayout CONTROLLER_LAYOUT = ControllerLayout.TRASH;
+    public static final ControllerLayout CONTROLLER_LAYOUT = ControllerLayout.COMPETITION;
 
     public static final class SwerveModuleConstants {
         public static final boolean kTurningEncoderInverted = true;
@@ -122,10 +123,11 @@ public final class Constants {
         public static final double kMaxSpeedMetersPerSecond = SwerveModuleConstants.kDriveWheelFreeSpeedMPS;
         public static final double kMaxAccelerationMetersPerSecondSquared = 10;
         public static final double kMaxAngularSpeedRadiansPerSecond = Math.PI;
-        public static final double kMaxAngularSpeedRadiansPerSecondSquared = 4 * Math.PI;
+        public static final double kMaxAngularSpeedRadiansPerSecondSquared = 4*Math.PI;
+        public static final TrapezoidProfile.Constraints kThetaControllerConstraints = new TrapezoidProfile.Constraints(
+            kMaxAngularSpeedRadiansPerSecond, kMaxAngularSpeedRadiansPerSecondSquared);
 
-        public static final double kPathFollowerMaxSpeed = AutoConstants.kMaxSpeedMetersPerSecond; // Max module speed,
-                                                                                                   // in m/s
+        public static final double kPathFollowerMaxSpeed = AutoConstants.kMaxSpeedMetersPerSecond; // Max module speed, in m/s
         public static final double kPathFollowerBaseRadius = DriveConstants.kBaseRadius; // Drive base radius in meters
         public static final double kPathFollowerMass = 52.1631; // 115 pounds
         public static final double kPathFollowerMomentOfInertia = 6.2; // Total guess. Rough estimate of l^2 + w^2 * m *
@@ -153,7 +155,6 @@ public final class Constants {
                                                                                               // 0.1, 0.05);
         public static final Matrix<N3, N1> kMultiTagStdDevs = VecBuilder.fill(0.6, 0.6, 0.4);// VecBuilder.fill(0.05,
                                                                                              // 0.05, 0.001);
-
         // Maximum ambiguity accepted as a valid result from the vision systems
         public static final double kMaxValidAmbiguity = 0.2;
         public static final double kMaxZError = 0.75;

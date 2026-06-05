@@ -18,6 +18,7 @@ import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.RobotBase;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import frc.robot.Robot;
 import frc.robot.subsystems.Drive;
 import frc.robot.subsystems.LED;
@@ -111,6 +112,7 @@ public class ShootToPose extends Command {
 
     @Override
     public void initialize() {
+        m_Shooter.setFlywheelBoost(1.0);
     }
 
     @Override
@@ -127,8 +129,7 @@ public class ShootToPose extends Command {
             turretPose = m_Shooter.getTurretPose();
         }
 
-        ChassisSpeeds chassisSpeeds = ChassisSpeeds.fromRobotRelativeSpeeds(m_Drive.getMeasuredSpeeds(),
-                m_Drive.getPose().getRotation());
+        ChassisSpeeds chassisSpeeds = m_Drive.getMeasuredFieldRelativeSpeeds();
 
         TrajectoryConditions conditions = new TrajectoryConditions();
         TrajectoryParameters params = null;

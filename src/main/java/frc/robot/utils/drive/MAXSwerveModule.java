@@ -96,10 +96,12 @@ public class MAXSwerveModule {
     m_drivingConfig.idleMode(SwerveModuleConstants.kDrivingMotorIdleMode);
     m_drivingConfig.inverted(false);
     m_drivingConfig.smartCurrentLimit(SwerveModuleConstants.kDrivingMotorCurrentLimit);
-    
+
     m_drivingConfig.encoder
         .positionConversionFactor(SwerveModuleConstants.kDrivingEncoderPositionFactor)
-        .velocityConversionFactor(SwerveModuleConstants.kDrivingEncoderVelocityFactor);
+        .velocityConversionFactor(SwerveModuleConstants.kDrivingEncoderVelocityFactor)
+        .quadratureAverageDepth(8)
+        .quadratureMeasurementPeriod(25);
 
     m_drivingConfig.closedLoop
         .feedbackSensor(FeedbackSensor.kPrimaryEncoder)

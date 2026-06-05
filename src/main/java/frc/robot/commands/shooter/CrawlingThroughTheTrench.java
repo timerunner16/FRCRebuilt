@@ -32,7 +32,7 @@ public class CrawlingThroughTheTrench extends Command {
     // Called every time the scheduler runs while the command is scheduled.
     @Override
     public void execute() {
-        Pose2d targetPose = FieldUtils.getInstance().getHubPose().toPose2d();
+        Pose2d targetPose = FieldUtils.getInstance().getClosestHubPose(m_shooter.getTurretPose().toPose2d()).toPose2d();
         if (Constants.CONTROLLER_LAYOUT == Constants.ControllerLayout.TRASH) {
             targetPose = FieldUtils.getInstance().getTrashPose().toPose2d();
         }

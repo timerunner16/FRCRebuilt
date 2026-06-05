@@ -263,11 +263,10 @@ public class Drive extends SubsystemBase {
     return m_Drive;
   }
 
-  @Override
-  public void periodic() {
+  public void odometryPeriodic() {
     // This method will be called once per scheduler run
     // Update the odometry in the periodic block
-    Pose2d updated = m_DrivePoseEstimator.update(
+    m_DrivePoseEstimator.update(
       Rotation2d.fromDegrees(m_gyro.getAngle(IMUAxis.kZ)), 
       new SwerveModulePosition[] {
         m_FrontLeft.getPosition(),
@@ -275,13 +274,16 @@ public class Drive extends SubsystemBase {
         m_BackLeft.getPosition(),
         m_BackRight.getPosition()
       });
-    m_poseLogger.setStruct(updated);
+  }
 
+  @Override
+  public void periodic() {
     ChassisSpeeds currentSpeeds = getMeasuredFieldRelativeSpeeds();
     m_recentSpeeds.add(currentSpeeds);
     if (m_recentSpeeds.size() > 5) {
       m_recentSpeeds.remove(0);
     }
+    m_poseLogger.setStruct(m_DrivePoseEstimator.getEstimatedPosition());
 
     updateTD();
     super.periodic();
@@ -641,10 +643,11 @@ public class Drive extends SubsystemBase {
     recentAcceleration.omegaRadiansPerSecond /= m_recentSpeeds.size();
 
     ChassisSpeeds current = m_recentSpeeds.get(m_recentSpeeds.size()-1);
+
     ChassisSpeeds acceleratedSpeeds = new ChassisSpeeds(
-      current.vxMetersPerSecond + recentAcceleration.vxMetersPerSecond * dtSeconds,
-      current.vyMetersPerSecond + recentAcceleration.vyMetersPerSecond * dtSeconds,
-      current.omegaRadiansPerSecond + recentAcceleration.omegaRadiansPerSecond * dtSeconds
+      current.vxMetersPerSecond + recentAcceleration.vxMetersPerSecond * dtSeconds * .5,
+      current.vyMetersPerSecond + recentAcceleration.vyMetersPerSecond * dtSeconds * .5,
+      current.omegaRadiansPerSecond + recentAcceleration.omegaRadiansPerSecond * dtSeconds * .5
     );
 
     return acceleratedSpeeds.toTwist2d(dtSeconds);

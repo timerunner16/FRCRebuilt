@@ -87,7 +87,7 @@ public class OI {
             xInput = () -> -m_driverXboxController.getLeftX();
             yInput = m_driverXboxController::getLeftY;
         }
-        m_driveInputs = new SwerveDriveInputs(xInput, yInput, m_driverXboxController::getRightX);
+        m_driveInputs = new SwerveDriveInputs(xInput, yInput, () -> m_driverXboxController.getRightX());
     }
 
     public void bindControls() {
@@ -133,9 +133,20 @@ public class OI {
         SwitchIndicator operatorIndicator = new RumbleIndicator(operator.getHID());
         new TriggerBuilder<Submap>(m_operatorSubmap)
                 .beginSubmap(Submap.AUTO)
-                .whileTrue(operator.rightBumper(), Commands.parallel(new SpindexerSpin(), new ChimneyUp()))
+                .whileTrue(operator.rightBumper(), new SpindexerSpin())
+                .whileTrue(operator.leftBumper(), new SpindexerReverse())
 
-                .whileTrue(operator.leftBumper(), Commands.parallel(new SpindexerReverse(), new ChimneyDown()))
+                .whileTrue(operator.rightTrigger(), Commands.run(() -> {
+                        Shooter.getInstance().setFlywheelBoost(
+                                Shooter.getInstance().getFlywheelBoost() + 0.01
+                        );
+                }))
+
+                .whileTrue(operator.leftTrigger(), Commands.run(() -> {
+                        Shooter.getInstance().setFlywheelBoost(
+                                Shooter.getInstance().getFlywheelBoost() - 0.01
+                        );
+                }))
 
                 // midfield
                 .whileTrue(operator.povUp(), new ShootMap(
@@ -241,13 +252,6 @@ public class OI {
                 .onTrue(operator.x(), new StopTurretCalibration())
                 .onTrue(operator.b(), new CalibrateTurretFull())
 
-                .whileTrue(operator.rightTrigger(), Commands.parallel(
-                        new ChimneyUp(),
-                        new SpindexerSpin()))
-                .whileTrue(operator.leftTrigger(), Commands.parallel(
-                        new ChimneyDown(),
-                        new SpindexerReverse()))
-
                 .map(operator.povUp(), new RealManualTurretControl(), Trigger::toggleOnTrue)
                 .map(operator.povLeft(), new ManualShooterControl(), Trigger::toggleOnTrue)
 
@@ -326,7 +330,7 @@ public class OI {
                 .whileTrue(driver.a(),
                         new ShootToPose(FieldUtils.getInstance()::getTrashPose,
                                 new VelocityMapping(3.5, 6.0, 1500, 2650)))
-                .whileTrue(driver.x(), new FerryShoot())
+                .whileTrue(driver.x(), new ShootSpecified(7500, -45, 0))
 
                 .whileTrue(driver.leftTrigger(), new SlowSwerveDrive(m_driveInputs))
 
