@@ -445,8 +445,9 @@
 	],
 
 	"LED" : [
-		{"varName" : "LEDPort", "value": 1},
-		{"varName" : "stateChangeWarningTime", "value" : 5 }
+		{"varName" : "LEDPort", "value": 0},
+        {"varName" : "LEDCount", "value": 35},
+		{"varName" : "stateChangeWarningTime", "value" : 5}
 	],
 
 	"Climber" : [
