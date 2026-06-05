@@ -42,6 +42,7 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import frc.robot.Constants;
+import frc.robot.OI;
 import frc.robot.Constants.ShooterConstants;
 import frc.robot.testingdashboard.SubsystemBase;
 import frc.robot.testingdashboard.TDBoolean;
@@ -1041,6 +1042,9 @@ public class Shooter extends SubsystemBase {
                 m_flywheelFF.setKa(m_TDflywheelKa.get());
                 m_flywheelFF.setKs(m_TDflywheelKs.get());
             }
+
+            double value = OI.getInstance().getOperatorGuitarController().getRawAxis(0);
+            setFlywheelBoost(1.0 - 0.5 * ((value - 1.0) / 1.5));
 
             double flywheelSetpoint = m_TDflywheelVelocity.get() * m_flywheelBoost.get();
             if (!m_tuneFlywheel) {

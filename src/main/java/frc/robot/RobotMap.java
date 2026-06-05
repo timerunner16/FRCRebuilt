@@ -44,8 +44,9 @@ public class RobotMap {
   public static double R_BASE_RADIUS_INCHES = 19;
 
   // [U]ser Input
-  public static int U_DRIVER_XBOX_CONTROLLER = 0;
-  public static int U_OPERATOR_XBOX_CONTROLLER = 1;
+  public static int U_DRIVER_LEFT_CONTROLLER = 0;
+  public static int U_DRIVER_RIGHT_CONTROLLER = 1;
+  public static int U_OPERATOR_GUITAR_CONTROLLER = 2;
 
   // [S]hooter
   public static boolean S_ENABLED = Configuration.getInstance().getBool("Shooter", "Enabled");

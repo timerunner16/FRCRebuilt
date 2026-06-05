@@ -84,16 +84,6 @@ public class FerryShoot extends Command {
 
     @Override
     public void execute() {
-        if (m_enableJoysticking) {
-            Alliance alliance = DriverStation.getAlliance().orElse(Alliance.Blue);
-            double x = m_OI.getOperatorController().getRightY();
-            double y = -m_OI.getOperatorController().getRightX();
-            Translation2d offset = new Translation2d(MathUtil.applyDeadband(x, 0.05), MathUtil.applyDeadband(y, 0.05));
-            if (alliance == Alliance.Red) offset = offset.unaryMinus();
-
-            m_targetPosition = m_targetPosition.plus(offset.times(Constants.schedulerPeriodTime));
-        }
-
         m_field.getRobotObject().setPose(new Pose2d(m_targetPosition, Rotation2d.kZero));
         m_internalShootToPose.execute();
     }
