@@ -95,7 +95,7 @@ public class LED extends SubsystemBase{
                     double dt = (tick*m_speed)/1000.0+(double)lightIndex/numLights;
                     return Color.lerpRGB(m_foreground, m_background, (-Math.cos(Math.PI*2*dt)+1)/2);
                 case RAINBOW:
-                    return Color.fromHSV(((tick*m_speed)/1000)%180, 255, 255);
+                    return Color.fromHSV(((tick*m_speed)/20)%180, 255, 255);
                 case RUNNABLE:
                     return runnable(lightIndex, tick, numLights);
             }
