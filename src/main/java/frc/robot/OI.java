@@ -16,6 +16,7 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.robot.Constants.ControllerLayout;
 import frc.robot.commands.drive.JoystickHeadingDrive;
+import frc.robot.commands.drive.SetX;
 import frc.robot.commands.drive.SlowSwerveDrive;
 import frc.robot.commands.intake.DeployerIn;
 import frc.robot.commands.intake.DeployerOut;
@@ -117,6 +118,7 @@ public class OI {
                 .whileTrue(driver.povUp(), new IntakeOscillate())
                 .whileTrue(driver.rightBumper(), new IntakeAAAAA())
                 .whileTrue(driver.b(), new DeployerOut())
+                .whileTrue(driver.a(), new SetX())
                 .whileTrue(driver.rightTrigger(), new DeployerIn())
 
                 .whileTrue(driver.leftTrigger(), new SlowSwerveDrive(m_driveInputs))
