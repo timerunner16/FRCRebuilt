@@ -39,7 +39,7 @@ public class OI {
     private SwerveDriveInputs m_driveInputs;
 
     private boolean m_lastStrumSide;
-    private double m_timeSinceStrum;
+    private double m_lastStrumTime;
 
     private enum Submap {
         DRIVE_SYSID,
@@ -57,7 +57,7 @@ public class OI {
     }
 
     private OI() {
-        m_timeSinceStrum = Double.MAX_VALUE;
+        m_lastStrumTime = Double.MAX_VALUE;
         m_lastStrumSide = false;
 
         m_driverLeft = new CommandXboxController(RobotMap.U_DRIVER_LEFT_CONTROLLER);
@@ -67,11 +67,11 @@ public class OI {
         Supplier<Double> xInput;
         Supplier<Double> yInput;
         if (RobotBase.isReal()) {
-            xInput = () -> m_driverLeft.getRawAxis(0);
-            yInput = () -> m_driverLeft.getRawAxis(1);
+            xInput = () -> m_driverLeft.getRawAxis(1);
+            yInput = () -> m_driverLeft.getRawAxis(0);
         } else {
-            xInput = () -> m_driverLeft.getRawAxis(0);
-            yInput = () -> -m_driverLeft.getRawAxis(1);
+            xInput = () -> m_driverLeft.getRawAxis(1);
+            yInput = () -> m_driverLeft.getRawAxis(0);
         }
         m_driveInputs = new SwerveDriveInputs(xInput, yInput, () -> -m_driverRight.getRawAxis(1));
     }
@@ -82,12 +82,12 @@ public class OI {
 
     public void bindRockstarLayout(CommandGenericHID driverLeft, CommandGenericHID driverRight, CommandGenericHID operator) {
         new TriggerBuilder<>(m_driverSubmap)
-            .onTrue(driverRight.button(2), new InstantCommand(() -> Drive.getInstance().zeroHeading()))
+            .onTrue(driverRight.button(3), new InstantCommand(() -> Drive.getInstance().zeroHeading()))
 
-            .whileTrue(driverLeft.button(0), new IntakeIn())
-            .whileTrue(driverRight.button(0), new IntakeAAAAA())
+            .whileTrue(driverLeft.button(1), new IntakeIn())
+            .whileTrue(driverRight.button(1), new IntakeAAAAA())
 
-            .whileTrue(driverLeft.button(2), new SlowSwerveDrive(m_driveInputs))
+            .whileTrue(driverLeft.button(3), new SlowSwerveDrive(m_driveInputs))
 
             .register();
 
@@ -101,30 +101,30 @@ public class OI {
 
         new TriggerBuilder<Submap>(m_operatorSubmap)
             .whileTrue(new Trigger(() -> {
-                if ((operator.getHID().getRawButton(5) && m_lastStrumSide) ||
-                    (operator.getHID().getRawButton(6) && !m_lastStrumSide)) {
-                    m_timeSinceStrum = Timer.getFPGATimestamp();
+                if ((operator.getHID().getRawButton(6) && m_lastStrumSide) ||
+                    (operator.getHID().getRawButton(7) && !m_lastStrumSide)) {
+                    m_lastStrumTime = Timer.getFPGATimestamp();
                     m_lastStrumSide = !m_lastStrumSide;
                 }
-                return m_timeSinceStrum < 0.4;
+                return (Timer.getFPGATimestamp() - m_lastStrumTime < 0.4);
             }), new SpindexerSpin())
 
-            .whileTrue(operator.button(0), new ShootToPose(FieldUtils.getInstance()::getHubPose))
+            .whileTrue(operator.button(1), new ShootToPose(FieldUtils.getInstance()::getHubPose))
 
-            .whileTrue(operator.button(1), new ShootToPose(() -> leftClose))
-            .whileTrue(operator.button(2), new ShootToPose(() -> leftFar))
-            .whileTrue(operator.button(3), new ShootToPose(() -> rightClose))
-            .whileTrue(operator.button(4), new ShootToPose(() -> rightFar))
-
-            .onTrue(
-                operator.button(0)
-                    .and(operator.button(2))
-                    .and(operator.button(4)),
-                new CalibrateTurretFull())
+            .whileTrue(operator.button(2), new ShootToPose(() -> leftClose))
+            .whileTrue(operator.button(3), new ShootToPose(() -> leftFar))
+            .whileTrue(operator.button(4), new ShootToPose(() -> rightClose))
+            .whileTrue(operator.button(5), new ShootToPose(() -> rightFar))
 
             .onTrue(
                 operator.button(1)
-                    .and(operator.button(3)),
+                    .and(operator.button(3))
+                    .and(operator.button(5)),
+                new CalibrateTurretFull())
+
+            .onTrue(
+                operator.button(2)
+                    .and(operator.button(4)),
                 new HoodCalibrate())
 
             .register();
