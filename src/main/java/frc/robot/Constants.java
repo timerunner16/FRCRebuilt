@@ -277,7 +277,7 @@ public final class Constants {
     }
 
     public static final class LEDConstants {
-        public static final int LEDLength = 49; // number of LEDs
+        public static final int LEDLength = 36; // number of LEDs
         public static final int kPositionSplitIndex = 10;
         public static final boolean kInversePolarity = true; // dont know what it does but it seems cool
     }
