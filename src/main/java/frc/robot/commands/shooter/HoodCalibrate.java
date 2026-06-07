@@ -28,4 +28,9 @@ public class HoodCalibrate extends Command {
     public boolean isFinished() {
         return Timer.getFPGATimestamp() > m_startTime + 0.5;
     }
+
+    @Override
+    public InterruptionBehavior getInterruptionBehavior() {
+        return InterruptionBehavior.kCancelIncoming;
+    }
 }

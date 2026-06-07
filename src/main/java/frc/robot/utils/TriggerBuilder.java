@@ -101,7 +101,8 @@ public class TriggerBuilder<S> {
 
 		@Override
 		public void initialize() {
-			m_switchIndicator.accept(true);
+			if (m_switchIndicator != null)
+				m_switchIndicator.accept(true);
 		}
 
 		@Override
@@ -110,7 +111,8 @@ public class TriggerBuilder<S> {
 		@Override
 		public void end(boolean interrupted) {
 			m_submapHolder.set(m_newSubmap);
-			m_switchIndicator.accept(false);
+			if (m_switchIndicator != null)
+				m_switchIndicator.accept(false);
 		}
 
 		@Override
