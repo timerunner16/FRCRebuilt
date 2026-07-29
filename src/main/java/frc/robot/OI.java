@@ -1,5 +1,7 @@
 package frc.robot;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 
@@ -15,8 +17,10 @@ import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.SelectCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandGenericHID;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
@@ -36,6 +40,7 @@ import frc.robot.subsystems.Drive;
 import frc.robot.utils.FieldUtils;
 import frc.robot.utils.Referrable;
 import frc.robot.utils.TriggerBuilder;
+import frc.robot.utils.TriggerBuilder.PrintIndicator;
 import frc.robot.utils.TriggerBuilder.RumbleIndicator;
 import frc.robot.utils.TriggerBuilder.SwitchIndicator;
 import frc.robot.utils.drive.SwerveDriveInputs;
@@ -89,6 +94,28 @@ public class OI {
         bindRockstarLayout(m_driver, m_operatorGuitar);
     }
 
+    private String fretToCommand() {
+        GenericHID guitar = m_operatorGuitar.getHID();
+        if (guitar.getRawButton(1)) {
+            if (guitar.getRawButton(3) && guitar.getRawButton(5))
+                return "CalibrateTurret";
+            else
+                return "HubShoot";
+        } else if (guitar.getRawButton(2)) {
+            if (guitar.getRawButton(4))
+                return "CalibrateHood";
+            else
+                return "FerryLeftClose";
+        } else if (guitar.getRawButton(3)) {
+            return "FerryLeftFar";
+        } else if (guitar.getRawButton(4)) {
+            return "FerryRightClose";
+        } else if (guitar.getRawButton(5)) {
+            return "FerryLeftFar";
+        }
+        return "NoCommand";
+    }
+
     public void bindRockstarLayout(CommandXboxController driver, CommandGenericHID operator) {
         new TriggerBuilder<>(m_driverSubmap)
             .onTrue(driver.back(), new InstantCommand(() -> Drive.getInstance().zeroHeading()))
@@ -125,53 +152,35 @@ public class OI {
             return false;
         });
 
+        Map<String, Command> fretMap = new HashMap<>();
+        fretMap.put("HubShoot", Commands.parallel(
+            new ShootToPose(FieldUtils.getInstance()::getHubPose),
+            new SpindexerSpin()));
+        fretMap.put("FerryLeftClose", Commands.parallel(
+            new ShootToPose(() -> leftClose),
+            new SpindexerSpin()));
+        fretMap.put("FerryLeftFar", Commands.parallel(
+            new ShootToPose(() -> leftFar),
+            new SpindexerSpin()));
+        fretMap.put("FerryRightClose", Commands.parallel(
+            new ShootToPose(() -> rightClose),
+            new SpindexerSpin()));
+        fretMap.put("FerryRightFar", Commands.parallel(
+            new ShootToPose(() -> rightFar),
+            new SpindexerSpin()));
+        fretMap.put("CalibrateTurret", new CalibrateTurretFull());
+        fretMap.put("CalibrateHood", new HoodCalibrate());
+        fretMap.put("NoCommand", Commands.none());
+
+        PrintIndicator operatorIndicator = new PrintIndicator();
         new TriggerBuilder<Submap>(m_operatorSubmap)
-            .onTrue(
-                operator.button(1)
-                .and(operator.button(3))
-                .and(operator.button(5))
-                .and(strumming),
-                new CalibrateTurretFull())
-
-            .onTrue(
-                operator.button(2)
-                .and(operator.button(4))
-                .and(strumming),
-                new HoodCalibrate())
-
             .beginSubmap(Submap.AUTO)
-                .whileTrue(
-                    operator.button(1).and(strumming), 
-                    Commands.parallel(
-                        new ShootToPose(FieldUtils.getInstance()::getHubPose),
-                        new SpindexerSpin()))
-                .whileTrue(
-                    operator.button(2).and(strumming), 
-                    Commands.parallel(
-                        new ShootToPose(() -> leftClose),
-                        new SpindexerSpin()))
-                .whileTrue(
-                    operator.button(3).and(strumming), 
-                    Commands.parallel(
-                        new ShootToPose(() -> leftFar),
-                        new SpindexerSpin()))
-                .whileTrue(
-                    operator.button(4).and(strumming), 
-                    Commands.parallel(
-                        new ShootToPose(() -> rightClose),
-                        new SpindexerSpin()))
-                .whileTrue(
-                    operator.button(5).and(strumming), 
-                    Commands.parallel(
-                        new ShootToPose(() -> rightFar),
-                        new SpindexerSpin()))
-
-                .switchSubmap(null,
+                .whileTrue(strumming, new SelectCommand<>(fretMap, this::fretToCommand))
+                .switchSubmap(operatorIndicator,
                         operator.button(1)
                         .and(operator.button(2))
                         .and(operator.button(3))
-                        .and(operator.button(4))
-                        .and(strumming), Submap.MANUAL)
+                        .and(operator.button(4)), Submap.MANUAL)
             .endSubmap()
 
             .beginSubmap(Submap.MANUAL)
@@ -241,12 +250,11 @@ public class OI {
                         new SpindexerSpin()))
                 
 
-                .switchSubmap(null,
+                .switchSubmap(operatorIndicator,
                     operator.button(1)
                         .and(operator.button(2))
                         .and(operator.button(3))
-                        .and(operator.button(4))
-                        .and(strumming),
+                        .and(operator.button(4)),
                     Submap.AUTO)
             .endSubmap()
 
